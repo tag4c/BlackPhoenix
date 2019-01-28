@@ -42,7 +42,7 @@ struct dataStruct
 	double z;     // column 3
 };
 void sort(vector<dataStruct> &data, dataStruct *temp, int column,int left, int right);
-void sortPrep(vector<dataStruct> &a, int size);
+void sortPrep(vector<dataStruct> &a, int size, int column);
 void merge(vector<dataStruct> &a, dataStruct *tmp_array, int column, int left, int middle, int right ) ;
 // Common functions everyone will use
 
@@ -109,12 +109,12 @@ int main(int argc, char *argv[])
 
 /* Main Routine function declarations  */ 
 
-void sortPrep(vector<dataStruct> &a,int size){
+void sortPrep(vector<dataStruct> &a,int size,int column){
 	//temp array to swap data
 	dataStruct *tmp;
 	tmp =(dataStruct *) malloc((size)*sizeof(dataStruct));
 	//begin recursive sort
-	sort(a,tmp,1,0,size-1);
+	sort(a,tmp,column,0,size-1);
 
 }
  
@@ -136,7 +136,7 @@ void merge(vector<dataStruct> &a, dataStruct *tmp,int column, int left, int midd
     tmp_pos = left;
     num_elements = right-left+1;
     while((left <= left_end) && (middle <= right))
-        if(a[left].x <= a[middle].x)
+        if(a[left].coordinate(column) <= a[middle].coordinate(coulmn))
             tmp[tmp_pos++] = a[left++];
         else
             tmp[tmp_pos++] = a[middle++];
