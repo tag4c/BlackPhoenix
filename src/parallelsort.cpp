@@ -49,13 +49,11 @@ structure format:
 long integer   |   double   |   double  |   double
 
 */
-
+#define dim = 3;
 struct dataStruct
 {
 	long int id;  // Line Number
-	double x;     // column 1
-	double y;     // column 2
-	double z;     // column 3
+	std::vector<double> coordinates(dim);     // column 1
 };
 
 
@@ -68,11 +66,13 @@ int main(int argc, char *argv[])
 	int i,j,k;
 	int maxFiles;
 	int maxNodes;
+	int columnToSort;
 
 
 	/* Variable initialization */
 	maxFiles = atoi(argv[1]);  // First command line argument for Number of files to read
 	maxNodes = atoi(argv[2]); // Second command line argument for number of compute nodes to use for the sort
+	columnToSort = atoi(argv[3]); // third command line argument - column  to sort on
 
 	/* MPI Setup */
 	int myrank, worldSize; // myrank - Node ID, worldSize - number of nodes available
