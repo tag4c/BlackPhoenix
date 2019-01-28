@@ -3,10 +3,12 @@
 // /* variable statement
 //    dataArray     : The data array that we use
 //    numPercentile : The number of parts we want to divide
-//    dataNum       : The total number of the data array
+//    dataNum       : The size of the data array
+// */ End variable statement
 #define Int int
+#define Double double
 
-void findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, vector<Double>& percentiles)
+void findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, vector<Double>& percentiles, Double& numDataEachPart)
 {
   Int position, i;
   // position : The positon of dataArray

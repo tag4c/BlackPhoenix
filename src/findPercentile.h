@@ -4,6 +4,6 @@
 //    dataArray     : The data array that we use
 //    numPercentile : The number of parts we want to divide
 //    dataNum       : The total number of the data array
-// Output: vector<Double> percentiles
+// Output: vector<Double> percentiles, Double numDataEachPart
 
-void  findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, vector<Double>& percentiles);
+void  findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, vector<Double>& percentiles, Double& numDataEachPart);
