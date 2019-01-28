@@ -62,6 +62,7 @@ struct dataStruct
 /* Main Routine */
 int main(int argc, char *argv[])
 {
+        cout<<"test";
 	/* Variable Declarations */
 	int i,j,k;
 	int maxFiles;
@@ -90,7 +91,6 @@ int main(int argc, char *argv[])
         ofstream outFile;
         inFile.open("inData.txt");
         outFile.open("outData.txt");
-
         double val;
         for(int i=0;i<size;i++){
         data.push_back(dataStruct());
