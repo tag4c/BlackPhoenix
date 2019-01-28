@@ -1,5 +1,5 @@
 // This function is used for find the percentile in a given array
-// Input: dataArray, numPercentile, dataNum
+// Input: dataArray, numPercentile, dataNum, columnToSort
 // /* variable statement
 //    dataArray     : The data array that we use
 //    numPercentile : The number of parts we want to divide
@@ -8,7 +8,7 @@
 #define Int int
 #define Double double
 
-void findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, vector<Double>& percentiles, Double& numDataEachPart)
+void findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, vector<Double>& percentiles, Double& numDataEachPart)
 {
   Int position, i;
   // position : The positon of dataArray
@@ -27,7 +27,7 @@ void findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& data
       Double numDataCurrentPart = numDataEachPart * i;
       position = floor(numDataCurrentPart);
       ratio = numDataCurrentPart - position;
-      percentiles[i-1] = dataArray[position].x * (1-ratio) + dataArray[position].x * ratio;
+      percentiles[i-1] = dataArray[position].coordinates[columnToSort] * (1-ratio) + dataArray[position].coordinates[columnToSort] * ratio;
     }      
 
 }

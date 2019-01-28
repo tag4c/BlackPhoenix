@@ -1,5 +1,5 @@
 // This function is used to sperate the data array by the global position
-// Input  : dataNum, dataArray, globalPos, numDataEachPart
+// Input  : dataNum, dataArray, globalPos, numDataEachPart, columnToSort
 // /* variable statement
 //    dataNum         : The size of the data array
 //    dataArray       : The data array that we use
@@ -12,7 +12,7 @@
 #define Int int
 #define Double double
 
-void sperateArray(vector<dataStruct>& dataArray, Int& dataNum, vector<Double>& globalPos, Double numDataEachPart,  vector<Int>& posIndex)
+void sperateArray(vector<dataStruct>& dataArray, Int& dataNum, vector<Double>& globalPos, Double numDataEachPart, Int& columnToSort, vector<Int>& posIndex)
 {
   Int numofParts = globalPos.size(); // The number of parts we want to divide(Tips: minus 1, we ohly need the inside percentiles)
   // Start to find the position index
@@ -20,10 +20,10 @@ void sperateArray(vector<dataStruct>& dataArray, Int& dataNum, vector<Double>& g
     {
       Double globalPercentile = globalPos[i];
       Int startPos = floor( (i+1) * numDataEachPart );
-      if(globalPercentile > dataArray[startPos].x)
+      if(globalPercentile > dataArray[startPos].coordinates[columnToSort])
 	{
 	  Int currentPos = startPos + 1;
-	  while(globalPercentile > dataArray[currentPos])
+	  while(globalPercentile > dataArray[currentPos].coordinates[columnToSort])
 	    {
 	      currentPos++;
 	    }
@@ -32,7 +32,7 @@ void sperateArray(vector<dataStruct>& dataArray, Int& dataNum, vector<Double>& g
       else
 	{
 	  Int currentPos = startPos - 1;
-	  while(globalPercentile < dataArray[currentPos])
+	  while(globalPercentile < dataArray[currentPos].coordinates[columnToSort])
 	    {
 	      currentPos--;
 	    }
