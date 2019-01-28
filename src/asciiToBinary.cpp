@@ -11,7 +11,11 @@ Required Header Files
 */
 #include <iostream>
 #include <fstream>
+#include <sys/types.h>
+#include <dirent.h>
+#include <string>
 #include <vector>
+#include <typeinfo>
 
 /*
 ==================================================
@@ -35,6 +39,16 @@ struct dataStruct
 
 #endif
 
+
+void read_directory(const std::string& name, std::vector<std::string>& v)
+{
+    DIR* dirp = opendir(name.c_str());
+    struct dirent * dp;
+    while ((dp = readdir(dirp)) != NULL) {
+        v.push_back(dp->d_name);
+    }
+    closedir(dirp);
+}
 /*
 ==================================================
 
@@ -50,13 +64,32 @@ int main()
     double col1, col2, col3;
     dataStruct lineData;
     std::vector<dataStruct> dataArray;
+    std::vector<std::string> dirListing;
+    std::string path = "../datafiles/ascii/input/";
+    read_directory(path, dirListing);
+    for (i = 0; i < dirListing.size(); i++)
+    {
+    	if (dirListing[i] == ".." || dirListing[i] == ".")
+    	{
+    		continue;
+
+    	}
+    	 	std::cout << dirListing[i] << std::endl;
+    	
+    }
 
 
-    std::ifstream inFile("../datafiles/input/datafile00001.txt");
+    //std::cout << typeid(dirListing[i]).name() << std::endl;
+   
+
     
 
-    linecount = 0;
 
+  // std::ifstream inFile("../datafiles/input/datafile00001.txt");
+    
+
+    //linecount = 0;
+/*
     if (inFile.is_open())
     {
     	while ( inFile )
@@ -98,6 +131,7 @@ int main()
    	{
    		std::cout << "File wasn't opened.\n";
    	}
+   	*/
 
 
 
