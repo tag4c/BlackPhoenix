@@ -62,22 +62,16 @@ int main()
     {
     	while ( inFile )
     	{
-    		//inFile >> lineData.id;
     		inFile.read((char*)&lineData.id, 4);
     		inFile.read((char*)&lineData.col1, 8);
     		inFile.read((char*)&lineData.col2, 8);
     		inFile.read((char*)&lineData.col3, 8);
-            //inFile >> lineData.col1;
-            //inFile >> lineData.col2;
-            //inFile >> lineData.col3;
             dataArray.push_back(lineData);
 
 		}
 		inFile.close();
 
-		std::cout << dataArray[0].id << std::setprecision(15) << " " << dataArray[0].col1 << " " << dataArray[0].col2 << " " << dataArray[0].col3 << "\n";
-/*
-		std::ofstream outFile("../datafiles/output/tag4ctest.bin", std::ios::binary | std::ios::out);
+		std::ofstream outFile("../datafiles/output/tag4ctest.txt", std::ios::binary | std::ios::out);
 		if (outFile.is_open())
 		{
 
@@ -98,7 +92,7 @@ int main()
 	    	std::cout << "\nOutput file wasn't opened properly.\n";
 	    }
 
-	    */
+	   
 
 		
 
