@@ -59,14 +59,21 @@ Main
 
 int main()
 {
-    int i, j, k, linecount;
+    int i, j, k, fileCount;
     int id;
     double col1, col2, col3;
     dataStruct lineData;
+    
     std::vector<dataStruct> dataArray;
     std::vector<std::string> dirListing;
+    std::vector<std::string> dataFileList;
     std::string path = "../datafiles/ascii/input/";
+    std::string outpath = "../datafiles/binary/output/";
+    std::string filepath; // reusable string to specify full string path
+
     read_directory(path, dirListing);
+
+    fileCount = 0;
     for (i = 0; i < dirListing.size(); i++)
     {
     	if (dirListing[i] == ".." || dirListing[i] == ".")
@@ -74,66 +81,62 @@ int main()
     		continue;
 
     	}
-    	 	std::cout << dirListing[i] << std::endl;
+        else
+        {
+    	 	dataFileList.push_back(dirListing[i]);
+            fileCount++;
+        }
     	
     }
 
-
-    //std::cout << typeid(dirListing[i]).name() << std::endl;
-   
-
-    
-
-
-  // std::ifstream inFile("../datafiles/input/datafile00001.txt");
-    
-
-    //linecount = 0;
-/*
-    if (inFile.is_open())
+    for (i = 0; i < fileCount; i++)
     {
-    	while ( inFile )
-    	{
-    		inFile >> lineData.id;
-            inFile >> lineData.col1;
-            inFile >> lineData.col2;
-            inFile >> lineData.col3;
-            dataArray.push_back(lineData);
+        filepath = path + dataFileList[i];
 
-		}
-		inFile.close();
+        std::ifstream inFile(filepath);
+        if ( inFile.is_open() )
+        {
+            while ( inFile )
+            {
+                inFile >> lineData.id;
+                inFile >> lineData.col1;
+                inFile >> lineData.col2;
+                inFile >> lineData.col3;
+                dataArray.push_back(lineData);
+            }
+            inFile.close();
 
-		std::ofstream outFile("../datafiles/output/tag4ctest.bin", std::ios::binary | std::ios::out);
-		if (outFile.is_open())
-		{
+        }
+        else
+        {
+            std::cout << "\nInput file wasn't opened properly.\n";
+            std::cout << filepath << std::endl;
+            exit(1);
+        }
+        filepath = outpath + dataFileList[i].substr(0, dataFileList[i].size()-4) + ".bin";
+        std::ofstream outFile(filepath, std::ios::binary | std::ios::out);
+        if (outFile.is_open())
+        {
 
-			for (i = 0; i < dataArray.size(); i++)
-			{
-				//outFile << dataArray[i].id << dataArray[i].col1 << dataArray[i].col2 << dataArray[i].col3;
-				//id = dataArray[i].id;
-				outFile.write((char*)&dataArray[i].id, 4);
-				outFile.write((char*)&dataArray[i].col1, 8);
-				outFile.write((char*)&dataArray[i].col2, 8);
-				outFile.write((char*)&dataArray[i].col3, 8);
-			}
+            for (j = 0; j < dataArray.size(); j++)
+            {
+                outFile.write((char*)&dataArray[j].id, 4);
+                outFile.write((char*)&dataArray[j].col1, 8);
+                outFile.write((char*)&dataArray[j].col2, 8);
+                outFile.write((char*)&dataArray[j].col3, 8);
+            }
 
-			outFile.close();
-	    }
-	    else
-	    {
-	    	std::cout << "\nOutput file wasn't opened properly.\n";
-	    }
-
-		
-
-   	}
-   	else
-   	{
-   		std::cout << "File wasn't opened.\n";
-   	}
-   	*/
+            outFile.close();
+        }
+        else
+        {
+            std::cout << "\nOutput file wasn't opened properly.\n";
+            exit(1);
+        }
 
 
+        
+    }
 
 	return 0;
 }
