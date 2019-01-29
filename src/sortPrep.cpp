@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "sortPrep.h"
 using namespace std;
-void sortPrep(vector<dataStruct> &data,int size,int column){
+void sortPrep(dataStruct *data,int size,int column){
 	//temp array to swap data
 	dataStruct *tmp;
 	tmp =(dataStruct *) malloc((size)*sizeof(dataStruct));
@@ -11,7 +11,7 @@ void sortPrep(vector<dataStruct> &data,int size,int column){
 
 }
  
-void sort(vector<dataStruct> &data, dataStruct *tmp,int column,int left, int right){
+void sort(dataStruct *data, dataStruct *tmp,int column,int left, int right){
 	long middle=(left+right)/2;
 	//dividing out for merge
 	if(left<right){
@@ -22,7 +22,7 @@ void sort(vector<dataStruct> &data, dataStruct *tmp,int column,int left, int rig
    }
 }
 
-void merge(vector<dataStruct> &data, dataStruct *tmp,int column, int left, int middle, int right ) {
+void merge(dataStruct *data, dataStruct *tmp,int column, int left, int middle, int right ) {
 
     int i, left_end, num_elements, tmp_pos;
     left_end = middle-1;
