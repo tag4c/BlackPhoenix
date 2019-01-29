@@ -7,12 +7,19 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
-#include "string.h"
+#include <vector>
+#include <string>
+#include <iomanip>
+#include <unistd.h>
 #include "mpi.h"
 
 // Common library includes for everyone...
 
 // Specific includes for individually authored code
+
+#include "sortPrep.h"
+#include "writeData.h"
+#include "readData.h"
 
 
 // Functions needed for header includes
@@ -49,12 +56,17 @@ structure format:
 long integer   |   double   |   double  |   double
 
 */
-#define dim = 3;
+#ifndef DATA_H
+#define DATA_H
+
 struct dataStruct
 {
-	long int id;  // Line Number
-	std::vector<double> coordinates(dim);     // column 1
+	int id;  // Line Number
+	double coordinates[3];     // column 1
 };
+#endif
+
+
 
 
 
@@ -68,17 +80,67 @@ int main(int argc, char *argv[])
 	int maxNodes;
 	int columnToSort;
 
+	
+
 
 	/* Variable initialization */
-	maxFiles = atoi(argv[1]);  // First command line argument for Number of files to read
-	maxNodes = atoi(argv[2]); // Second command line argument for number of compute nodes to use for the sort
-	columnToSort = atoi(argv[3]); // third command line argument - column  to sort on
+	//maxFiles = atoi(argv[1]);  // First command line argument for Number of files to read
+	//maxNodes = atoi(argv[2]); // Second command line argument for number of compute nodes to use for the sort
+	//columnToSort = atoi(argv[3]); // third command line argument - column  to sort on
 
 	/* MPI Setup */
 	int myrank, worldSize; // myrank - Node ID, worldSize - number of nodes available
+	MPI_Init(&argc, &argv);
+	alarm(180);
+	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+	MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
 	MPI_Request req;
 	MPI_Status status;
 
+
+	/*  Create our MPI Datatype to pass our structure back and forth  */
+	int blockSize[2] = { 1, 3 };
+	MPI_Datatype MPI_dataStruct[2] = { MPI_INT, MPI_DOUBLE };
+	MPI_Datatype MPI_dataArray;
+	MPI_Aint offsets[2];
+
+	offsets[0] = offsetof(dataStruct, id);
+	offsets[1] = offsetof(dataStruct, coordinates);
+
+	MPI_Type_create_struct(2, blockSize, offsets, MPI_dataStruct, &MPI_dataArray);
+
+	MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
+
+	std::cout << "My rank: " << myrank << std::endl;
+
+	/* Scheduler Node (HEAD NODE) */
+	if (myrank == 0)
+	{
+		/* Have this node read all data in and send it out first? */
+		std::vector <dataStruct> dataArray;
+		std::string filepath = "../datafiles/binary/input/datafile00001.bin";
+		std::cout << filepath << std::endl
+		//readFile(filepath, dataArray);
+
+		//std::cout << dataArray.size() << "\n";
+
+		//std::cout << dataArray[0].id << " " << std::setprecision(15) << dataArray[0].coordinates[0] << " " << dataArray[0].coordinates[1] << " " << dataArray[0].coordinates[2] << "\n";
+
+
+	}
+
+	/* Slave nodes (All others) */
+
+
+
+
+
+
+
+
+
+	MPI_Type_free(&MPI_dataArray); // clean up
+	MPI_Finalize(); // clean up MPI usage
 
 
 }
