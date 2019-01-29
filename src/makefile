@@ -1,5 +1,5 @@
 
-CC = g++
+CC = mpic++
 CFLAGS = -g 
 
 parallelsort: parallelsort.o readData.o sortPrep.o writeData.o
