@@ -8,7 +8,7 @@
 #define Int int
 #define Double double
 
-void findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, vector<Double>& percentiles, Double& numDataEachPart)
+void findPercentile(dataStruct* dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, Double* percentiles, Double& numDataEachPart)
 {
   Int position, i;
   // position : The positon of dataArray

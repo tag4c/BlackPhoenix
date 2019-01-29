@@ -9,5 +9,5 @@
 // Output : posIndex
 //    posIndex        : The index where to sperate the data array
 
-void sperateArray(vector<dataStruct>& dataArray, Int& dataNum, vector<Double>& globalPos, Double numDataEachPart, Int& columnToSort, vector<Int>& posIndex);
+void sperateArray(dataStruct* dataArray, Int& dataNum, Double* globalPos, Double& numDataEachPart, Int& columnToSort, Int* posIndex);
   

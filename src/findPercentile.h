@@ -6,4 +6,4 @@
 //    dataNum       : The total number of the data array
 // Output: vector<Double> percentiles, Double numDataEachPart
 
-void findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, vector<Double>& percentiles, Double& numDataEachPart);
+void findPercentile(dataStruct* dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, Double* percentiles, Double& numDataEachPart);
