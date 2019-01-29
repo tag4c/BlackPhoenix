@@ -17,9 +17,12 @@
 
 // Specific includes for individually authored code
 
+//
+//
+#include "readData.h"
 #include "sortPrep.h"
 #include "writeData.h"
-#include "readData.h"
+
 
 
 // Functions needed for header includes
@@ -91,6 +94,7 @@ int main(int argc, char *argv[])
 	/* MPI Setup */
 	int myrank, worldSize; // myrank - Node ID, worldSize - number of nodes available
 	MPI_Init(&argc, &argv);
+	char a;
 	alarm(180);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 	MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
@@ -99,17 +103,17 @@ int main(int argc, char *argv[])
 
 
 	/*  Create our MPI Datatype to pass our structure back and forth  */
-	int blockSize[2] = { 1, 3 };
-	MPI_Datatype MPI_dataStruct[2] = { MPI_INT, MPI_DOUBLE };
-	MPI_Datatype MPI_dataArray;
-	MPI_Aint offsets[2];
+	//int blockSize[2] = { 1, 3 };
+	//MPI_Datatype MPI_dataStruct[2] = { MPI_INT, MPI_DOUBLE };
+	//MPI_Datatype MPI_dataArray;
+	//MPI_Aint offsets[2];
 
-	offsets[0] = offsetof(dataStruct, id);
-	offsets[1] = offsetof(dataStruct, coordinates);
+	//offsets[0] = offsetof(dataStruct, id);
+	//offsets[1] = offsetof(dataStruct, coordinates);
 
-	MPI_Type_create_struct(2, blockSize, offsets, MPI_dataStruct, &MPI_dataArray);
+	//MPI_Type_create_struct(2, blockSize, offsets, MPI_dataStruct, &MPI_dataArray);
 
-	MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
+	//MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
 
 	std::cout << "My rank: " << myrank << std::endl;
 
@@ -119,14 +123,17 @@ int main(int argc, char *argv[])
 		/* Have this node read all data in and send it out first? */
 		std::vector <dataStruct> dataArray;
 		std::string filepath = "../datafiles/binary/input/datafile00001.bin";
-		std::cout << filepath << std::endl
-		//readFile(filepath, dataArray);
+		//std::cout << filepath << std::endl;
+		readFile(filepath, dataArray);
+
 
 		//std::cout << dataArray.size() << "\n";
+		for (i = 0; i < 10; i++)
+		{
 
-		//std::cout << dataArray[0].id << " " << std::setprecision(15) << dataArray[0].coordinates[0] << " " << dataArray[0].coordinates[1] << " " << dataArray[0].coordinates[2] << "\n";
+			std::cout << dataArray[i].id << " " << std::setprecision(15) << dataArray[i].coordinates[0] << " " << dataArray[i].coordinates[1] << " " << dataArray[i].coordinates[2] << "\n";
 
-
+		}
 	}
 
 	/* Slave nodes (All others) */
@@ -139,8 +146,11 @@ int main(int argc, char *argv[])
 
 
 
-	MPI_Type_free(&MPI_dataArray); // clean up
+	//MPI_Type_free(&MPI_dataArray); // clean up
 	MPI_Finalize(); // clean up MPI usage
+
+
+	return 0;
 
 
 }
