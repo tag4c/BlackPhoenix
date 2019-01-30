@@ -63,6 +63,7 @@ int main()
     int id;
     double col1, col2, col3;
     dataStruct lineData;
+    char a;
     
     std::vector<dataStruct> dataArray;
     std::vector<std::string> dirListing;
@@ -70,7 +71,7 @@ int main()
     std::string path = "../datafiles/ascii/input/";
     std::string outpath = "../datafiles/binary/output/";
     std::string filepath; // reusable string to specify full string path
-
+    std::cout << "dataArray size: " << dataArray.size() << std::endl;
     read_directory(path, dirListing);
 
     fileCount = 0;
@@ -96,7 +97,7 @@ int main()
         std::ifstream inFile(filepath);
         if ( inFile.is_open() )
         {
-            while ( inFile )
+            while ( !inFile.eof() )
             {
                 inFile >> lineData.id;
                 inFile >> lineData.col1;
@@ -105,6 +106,9 @@ int main()
                 dataArray.push_back(lineData);
             }
             inFile.close();
+            std::cout << "File: " << filepath << " lines: " << dataArray.size() << std::endl;
+           // std::cout << dataArray[1001].id << " " << dataArray[1001].col1 << " " << std::endl;
+            //std::cin >> a;
 
         }
         else
@@ -118,7 +122,7 @@ int main()
         if (outFile.is_open())
         {
 
-            for (j = 0; j < dataArray.size(); j++)
+            for (j = 0; j < dataArray.size()-1; j++)
             {
                 outFile.write((char*)&dataArray[j].id, 4);
                 outFile.write((char*)&dataArray[j].col1, 8);
@@ -133,6 +137,8 @@ int main()
             std::cout << "\nOutput file wasn't opened properly.\n";
             exit(1);
         }
+
+        dataArray.clear();
 
 
         

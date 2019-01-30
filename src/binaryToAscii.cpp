@@ -53,7 +53,7 @@ int main()
     std::vector<dataStruct> dataArray;
 
 
-    std::ifstream inFile("../datafiles/output/tag4ctest.bin", std::ios::binary | std::ios::in);
+    std::ifstream inFile("../datafiles/binary/output/datafile00006.bin", std::ios::binary | std::ios::in);
     
 
     linecount = 0;
@@ -71,18 +71,19 @@ int main()
 		}
 		inFile.close();
 
-		std::ofstream outFile("../datafiles/output/tag4ctest.txt", std::ios::binary | std::ios::out);
+		std::ofstream outFile("../datafiles/output/tag4ctest.txt");
 		if (outFile.is_open())
 		{
 
-			for (i = 0; i < dataArray.size(); i++)
+			for (i = 0; i < dataArray.size()-1; i++)
 			{
-				//outFile << dataArray[i].id << dataArray[i].col1 << dataArray[i].col2 << dataArray[i].col3;
+				outFile << dataArray[i].id << " " << dataArray[i].col1 << " " << dataArray[i].col2 << " " << dataArray[i].col3 << std::endl;
 				//id = dataArray[i].id;
-				outFile.write((char*)&dataArray[i].id, 4);
+				/*outFile.write((char*)&dataArray[i].id, 4);
 				outFile.write((char*)&dataArray[i].col1, 8);
 				outFile.write((char*)&dataArray[i].col2, 8);
 				outFile.write((char*)&dataArray[i].col3, 8);
+				*/
 			}
 
 			outFile.close();
