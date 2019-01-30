@@ -130,13 +130,13 @@ int main(int argc, char *argv[])
 	//	std::cout << dataArray.size() << std::endl;
                 sortPrep(dataArray, 0);
 	//	std::cout << dataArray.size() << std::endl;
-	//	writeFile(outfilepath, dataArray);
-		vector <double> localPercentile(3);
+		writeFile(outfilepath, dataArray);
+	/*	vector <double> localPercentile(3);
                 int numOfPercentiles = 3;
 		int arraySize = dataArray.size();
                 double numDataEachPart = 0.0;
 		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 	
-		
+	*/	
 
 
 		//std::cout << dataArray.size() << "\n";

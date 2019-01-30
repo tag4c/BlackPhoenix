@@ -59,6 +59,7 @@ void readFile(std::string &filepath, std::vector<dataStruct> &dataArray)
 		}
 		//std::cout << "File was read.\n";
 		file.close();
+      		dataArray.pop_back();
 	}
     else
 	{
