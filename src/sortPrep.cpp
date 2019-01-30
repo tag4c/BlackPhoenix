@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include "sortPrep.h"
 using namespace std;
-void sortPrep(vector<dataStruct> &data,int size,int column){
+void sortPrep(vector<dataStruct> &data,int column){
 	//temp array to swap data
 	dataStruct *tmp;
+        int size=data.size();
 	tmp =(dataStruct *) malloc((size)*sizeof(dataStruct));
 	//begin recursive sort
 	sort(data,tmp,column,0,size-1);
