@@ -1,5 +1,5 @@
+#include <vector>
 
-
-void globalPositionValue (vector< vector<double> >& localPositionValueArray, int& numNodes, vector<double>& globalPositionValue);
+void globalPositionValue (std::vector< std::vector <double> >& localPositionValueArray, int& numNodes, std::vector <double>& globalPositionValue);
 
   
