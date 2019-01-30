@@ -5,14 +5,14 @@
 //    numPercentile : The number of parts we want to divide
 //    dataNum       : The size of the data array
 // */ End variable statement
+
+#include "findPercentile.h"
+
 #define Int int
 #define Double double
 
-<<<<<<< HEAD
-void findPercentile(dataStruct* dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, Double* percentiles, Double& numDataEachPart)
-=======
-void findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, vector<Double>& percentiles, Double& numDataEachPart)
->>>>>>> master
+void findPercentile(std::vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, std::vector<Double>& percentiles, Double& numDataEachPart)
+
 {
   Int position, i;
   // position : The positon of dataArray
@@ -23,7 +23,7 @@ void findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& data
   // PercentEachPart    : The percent of each part
   // numDataCurrentPart : The number of dataArray of each part
   Double percentEachPart = Double(1.0) / numPercentile;
-  Double numDataEachPart = percentEachPart * dataNum;
+  numDataEachPart = percentEachPart * dataNum;
 
   // Calculate the percentiles
   for(i=1;i<numPercentile;i++)

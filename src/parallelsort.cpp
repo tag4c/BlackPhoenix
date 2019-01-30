@@ -22,6 +22,7 @@
 #include "readData.h"
 #include "sortPrep.h"
 #include "writeData.h"
+#include "findPercentile.h"
 
 
 
@@ -81,7 +82,7 @@ int main(int argc, char *argv[])
 	int i,j,k;
 	int maxFiles;
 	int maxNodes;
-	int columnToSort;
+	int columnToSort = 0;
 
 	
 
@@ -122,20 +123,32 @@ int main(int argc, char *argv[])
 	{
 		/* Have this node read all data in and send it out first? */
 		std::vector <dataStruct> dataArray;
-		std::string filepath = "../datafiles/binary/input/datafile00001.bin";
+		std::string filepath = "../datafiles/binary/output/datafile00001.bin";
+		std::string outfilepath = "output.txt";
 		//std::cout << filepath << std::endl;
 		readFile(filepath, dataArray);
+	//	std::cout << dataArray.size() << std::endl;
+                sortPrep(dataArray, 0);
+	//	std::cout << dataArray.size() << std::endl;
+	//	writeFile(outfilepath, dataArray);
+		vector <double> localPercentile(3);
+                int numOfPercentiles = 3;
+		int arraySize = dataArray.size();
+                double numDataEachPart = 0.0;
+		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 	
+		
 
 
 		//std::cout << dataArray.size() << "\n";
-		for (i = 0; i < 10; i++)
+/*		for (i = 0; i < 10; i++)
 		{
 
 			std::cout << dataArray[i].id << " " << std::setprecision(15) << dataArray[i].coordinates[0] << " " << dataArray[i].coordinates[1] << " " << dataArray[i].coordinates[2] << "\n";
 
 		}
 	}
-
+*/
+}
 	/* Slave nodes (All others) */
 
 
