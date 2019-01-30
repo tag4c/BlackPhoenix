@@ -30,6 +30,7 @@ void writeFile(std::string &filepath, std::vector<dataStruct> &dataArray)
 {
 	int i,j,k;
 	int linecount = 0;
+        char a;
 
 	dataStruct lineData;
 	//std::vector <dataStruct> dataArray;
@@ -48,9 +49,9 @@ void writeFile(std::string &filepath, std::vector<dataStruct> &dataArray)
 		while ( linecount < dataArray.size() )
 		{
 
-            file << dataArray[linecount].id << " " << std::setprecision(15) << dataArray[linecount].coordinates[0] << " " << dataArray[linecount].coordinates[1] << " " << dataArray[linecount].coordinates[2] << "\n";
+            file << linecount << ": "  << dataArray[linecount].id << " " << std::setprecision(15) << dataArray[linecount].coordinates[0] << " " << dataArray[linecount].coordinates[1] << " " << dataArray[linecount].coordinates[2] << "\n";
+        //             std::cout << dataArray[linecount].id << " " << std::setprecision(15) << dataArray[linecount].coordinates[0] << " " << dataArray[linecount].coordinates[1] << " " << dataArray[linecount].coordinates[2] << "\n";
 			linecount++;
-
 		}
 
 		file.close();

@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include "sortPrep.h"
 using namespace std;
-void sortPrep(vector<dataStruct> &a,int size,int column){
+void sortPrep(vector<dataStruct> &data,int column){
 	//temp array to swap data
+	int size = data.size();
 	dataStruct *tmp;
 	tmp =(dataStruct *) malloc((size)*sizeof(dataStruct));
 	//begin recursive sort
-	sort(a,tmp,column,0,size-1);
+	sort(data,tmp,column,0,size-1);
 
 }
  
@@ -22,22 +23,22 @@ void sort(vector<dataStruct> &data, dataStruct *tmp,int column,int left, int rig
    }
 }
 
-void merge(vector<dataStruct> &a, dataStruct *tmp,int column, int left, int middle, int right ) {
+void merge(vector<dataStruct> &data, dataStruct *tmp,int column, int left, int middle, int right ) {
 
     int i, left_end, num_elements, tmp_pos;
     left_end = middle-1;
     tmp_pos = left;
     num_elements = right-left+1;
     while((left <= left_end) && (middle <= right))
-        if(a[left].coordinates[column] <= a[middle].coordinates[column])
-            tmp[tmp_pos++] = a[left++];
+        if(data[left].coordinates[column] <= data[middle].coordinates[column])
+            tmp[tmp_pos++] = data[left++];
         else
-            tmp[tmp_pos++] = a[middle++];
+            tmp[tmp_pos++] = data[middle++];
     while(left <= left_end)  
-        tmp[tmp_pos++] = a[left++];
+        tmp[tmp_pos++] = data[left++];
     while(middle <= right) 
-        tmp[tmp_pos++] = a[middle++];
+        tmp[tmp_pos++] = data[middle++];
     for(i=1; i <= num_elements; i++, right-- )
-        a[right] = tmp[right];
+        data[right] = tmp[right];
 
 }

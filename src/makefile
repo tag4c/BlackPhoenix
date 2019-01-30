@@ -2,8 +2,8 @@
 CC = mpic++
 CFLAGS = -g 
 
-parallelsort: parallelsort.o readData.o sortPrep.o writeData.o
-	$(CC) $(CFLAGS) -o parallelsort parallelsort.o readData.o sortPrep.o writeData.o -lm -std=c++0x
+parallelsort: parallelsort.o readData.o sortPrep.o writeData.o findPercentile.o
+	$(CC) $(CFLAGS) -o parallelsort parallelsort.o readData.o sortPrep.o writeData.o findPercentile.o -lm -std=c++0x
 
 parallelsort.o: parallelsort.cpp
 	$(CC) $(CFLAGS) -c parallelsort.cpp -std=c++0x
@@ -13,6 +13,9 @@ readData.o: readData.cpp
 
 writeData.o: writeData.cpp
 	$(CC) $(CFLAGS) -c writeData.cpp -std=c++0x
+
+findPercentile.o: findPercentile.cpp
+	$(CC) $(CFLAGS) -c findPercentile.cpp -std=c++0x
 
 sortPrep.o: sortPrep.cpp
 	$(CC) $(CFLAGS) -c sortPrep.cpp -std=c++0x

@@ -5,9 +5,12 @@
 //    numPercentile : The number of parts we want to divide
 //    dataNum       : The size of the data array
 // */ End variable statement
+
+#include "findPercentile.h"
+
 #define Int int
 #define Double double
-
+using namespace std;
 void findPercentile(vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, vector<Double>& percentiles, Double& numDataEachPart)
 {
   Int position, i;

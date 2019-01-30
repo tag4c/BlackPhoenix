@@ -33,7 +33,7 @@ Header Guards
 struct dataStruct
 {
 	long int id;  // Line Number
-	std::vector<double> coordinates;     // column 1
+	double coordinates[3];     // column 1
 };
 
 
