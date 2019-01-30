@@ -122,20 +122,22 @@ int main(int argc, char *argv[])
 	{
 		/* Have this node read all data in and send it out first? */
 		std::vector <dataStruct> dataArray;
-		std::string filepath = "../datafiles/binary/input/datafile00001.bin";
+		std::string filepath = "../datafiles/binary/output/datafile00001.bin";
 		//std::cout << filepath << std::endl;
 		readFile(filepath, dataArray);
+		
 
 
 		//std::cout << dataArray.size() << "\n";
-		for (i = 0; i < 10; i++)
+/*		for (i = 0; i < 10; i++)
 		{
 
 			std::cout << dataArray[i].id << " " << std::setprecision(15) << dataArray[i].coordinates[0] << " " << dataArray[i].coordinates[1] << " " << dataArray[i].coordinates[2] << "\n";
 
 		}
 	}
-
+*/
+}
 	/* Slave nodes (All others) */
 
 
