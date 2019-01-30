@@ -4,7 +4,7 @@ using namespace std;
 #define DATA_H
 struct dataStruct
 {
-long int id;
+int id;
 double coordinates[3];//std::vector<double> coordinates;
 };
 #endif

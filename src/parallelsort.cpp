@@ -104,17 +104,17 @@ int main(int argc, char *argv[])
 
 
 	/*  Create our MPI Datatype to pass our structure back and forth  */
-	//int blockSize[2] = { 1, 3 };
-	//MPI_Datatype MPI_dataStruct[2] = { MPI_INT, MPI_DOUBLE };
-	//MPI_Datatype MPI_dataArray;
-	//MPI_Aint offsets[2];
+	int blockSize[2] = { 1, 3 };
+	MPI_Datatype MPI_dataStruct[2] = { MPI_INT, MPI_DOUBLE };
+	MPI_Datatype MPI_dataArray;
+	MPI_Aint offsets[2];
 
-	//offsets[0] = offsetof(dataStruct, id);
-	//offsets[1] = offsetof(dataStruct, coordinates);
+	offsets[0] = offsetof(dataStruct, id);
+	offsets[1] = offsetof(dataStruct, coordinates);
 
-	//MPI_Type_create_struct(2, blockSize, offsets, MPI_dataStruct, &MPI_dataArray);
+	MPI_Type_create_struct(2, blockSize, offsets, MPI_dataStruct, &MPI_dataArray);
 
-	//MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
+	MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
 
 	std::cout << "My rank: " << myrank << std::endl;
 
@@ -129,27 +129,59 @@ int main(int argc, char *argv[])
 		readFile(filepath, dataArray);
 	//	std::cout << dataArray.size() << std::endl;
                 sortPrep(dataArray, 0);
+		int arraySize = dataArray.size();
+		std::cout << "Broadcasting size to All nodes!" << std::endl;
+		MPI_Bcast(&arraySize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		std::cout << "Broadcasting dataArray to all nodes!" << std::endl;
+		MPI_Bcast(&dataArray.front(), arraySize, MPI_dataArray, 0, MPI_COMM_WORLD);
+		std::cout << "Broadcasted to everyone!" << std::endl;
+		for (i = 0; i < 1; i++)
+		{
+
+			std::cout << "Rank: " << myrank << " "<< dataArray[i].id << " " << std::setprecision(15) << dataArray[i].coordinates[0] << " " << dataArray[i].coordinates[1] << " " << dataArray[i].coordinates[2] << "\n";
+
+		}
 	//	std::cout << dataArray.size() << std::endl;
-		writeFile(outfilepath, dataArray);
-	/*	vector <double> localPercentile(3);
+	//	writeFile(outfilepath, dataArray);
+/*		vector <double> localPercentile(3);
                 int numOfPercentiles = 3;
 		int arraySize = dataArray.size();
                 double numDataEachPart = 0.0;
 		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 	
-	*/	
+		std::cout << localPercentile[0] << " " << localPercentile[1]  << " " << localPercentile[2] << std::endl;
+*/		
 
 
 		//std::cout << dataArray.size() << "\n";
-/*		for (i = 0; i < 10; i++)
-		{
 
-			std::cout << dataArray[i].id << " " << std::setprecision(15) << dataArray[i].coordinates[0] << " " << dataArray[i].coordinates[1] << " " << dataArray[i].coordinates[2] << "\n";
-
-		}
-	}
-*/
 }
 	/* Slave nodes (All others) */
+	else
+	{
+		std::cout << "In rank " << myrank << std::endl;
+		std::vector <dataStruct> dataArray;
+		int dataArraySize;
+		MPI_Bcast(&dataArraySize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		std::cout << "Received size!" << std::endl;
+		std::cout << "Recv: " << dataArraySize << std::endl;
+		dataArray.reserve(dataArraySize);
+		MPI_Bcast(&dataArray.front(), dataArraySize, MPI_dataArray, 0, MPI_COMM_WORLD);
+		for (i = 0; i < 1; i++)
+		{
+
+			std::cout << "Rank: " << myrank << " "<< dataArray[i].id << " " << std::setprecision(15) << dataArray[i].coordinates[0] << " " << dataArray[i].coordinates[1] << " " << dataArray[i].coordinates[2] << "\n";
+
+		}
+		//MPI_Recv(&dataArray, dataArraySize, MPI_dataArray, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);	
+                //std::cout << dataArray[0].id << std::endl;
+       //std::cout << dataArraySize << std::endl;
+//       		for (i = 0; i < dataArraySize; i++)
+	//	{
+	//		std::cout << dataArray[i].id << " " << dataArray[i].coordinates[0] << " " << dataArray[i].coordinates[1] << " " << dataArray.coordinates[2] << std::endl;
+	//	}
+       		
+
+	}
 
 
 
@@ -157,9 +189,7 @@ int main(int argc, char *argv[])
 
 
 
-
-
-	//MPI_Type_free(&MPI_dataArray); // clean up
+	MPI_Type_free(&MPI_dataArray); // clean up
 	MPI_Finalize(); // clean up MPI usage
 
 
