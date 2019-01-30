@@ -12,7 +12,11 @@
 #define Int int
 #define Double double
 
+<<<<<<< HEAD
+void sperateArray(dataStruct* dataArray, Int& dataNum, Double* globalPos, Double& numDataEachPart, Int& columnToSort, Int* posIndex)
+=======
 void sperateArray(vector<dataStruct>& dataArray, Int& dataNum, vector<Double>& globalPos, Double numDataEachPart, Int& columnToSort, vector<Int>& posIndex)
+>>>>>>> master
 {
   Int numofParts = globalPos.size(); // The number of parts we want to divide(Tips: minus 1, we ohly need the inside percentiles)
   // Start to find the position index
