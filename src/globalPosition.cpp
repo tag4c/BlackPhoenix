@@ -11,7 +11,8 @@ void globalPositionValue (std::vector< std::vector <double> >& localPositionValu
       sumOfPos+=localPositionValueArray[j][0];
       
     }
-  globalPositionValue[0]=sumOfPos/numNodes;
+  
+  globalPositionValue.push_back(sumOfPos/numNodes);
   for (j=1; j<(numNodes-1); j++)
     {
       sumOfPos=0;
@@ -25,11 +26,8 @@ void globalPositionValue (std::vector< std::vector <double> >& localPositionValu
 	    }
 	  
 	}
-      globalPositionValue[j]=sumOfPos/count;
+      globalPositionValue.push_back(sumOfPos/count);
 
     }
-  
-
-
 
 }

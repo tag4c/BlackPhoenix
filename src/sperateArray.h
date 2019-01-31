@@ -8,8 +8,18 @@
 // */ End variable statement
 // Output : posIndex
 //    posIndex        : The index where to sperate the data array
+#include <vector>
+#include <cmath>
 
+#ifndef DATA_H
+#define DATA_H
 
-void sperateArray(std::vector<dataStruct>& dataArray, Int& dataNum, std::vector<Double>& globalPos, Double numDataEachPart, Int& columnToSort, std::vector<Int>& posIndex);
+struct dataStruct
+{
+	int id;  // Line Number
+	double coordinates[3];     // column 1
+};
+#endif
 
+void sperateArray(std::vector<dataStruct>& dataArray, int& dataNum, std::vector<double>& globalPos, double numDataEachPart, int& columnToSort, std::vector<int>& posIndex);
   

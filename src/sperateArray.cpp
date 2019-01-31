@@ -8,36 +8,39 @@
 // */ End variable statement
 // Output : posIndex
 //    posIndex        : The index where to sperate the data array
+#include "sperateArray.h"
 
 #define Int int
 #define Double double
 
-void sperateArray(std::vector<dataStruct>& dataArray, Int& dataNum, std::vector<Double>& globalPos, Double numDataEachPart, Int& columnToSort, std::vector<Int>& posIndex)
+
+
+void sperateArray(std::vector<dataStruct>& dataArray, int& dataNum, std::vector<double>& globalPos, double numDataEachPart, int& columnToSort, std::vector<int>& posIndex)
 
 {
   Int numofParts = globalPos.size(); // The number of parts we want to divide(Tips: minus 1, we ohly need the inside percentiles)
   // Start to find the position index
-  for(Int i=0; i<numofParts; i++)
+  for(int i=0; i<numofParts; i++)
     {
-      Double globalPercentile = globalPos[i];
-      Int startPos = floor( (i+1) * numDataEachPart );
+      double globalPercentile = globalPos[i];
+      int startPos = floor( (i+1) * numDataEachPart );
       if(globalPercentile > dataArray[startPos].coordinates[columnToSort])
 	{
-	  Int currentPos = startPos + 1;
+	  int currentPos = startPos + 1;
 	  while(globalPercentile > dataArray[currentPos].coordinates[columnToSort])
 	    {
 	      currentPos++;
 	    }
-	  PosIndex[i] = currentPos - 1;
+	  posIndex.push_back(currentPos - 1);
 	}
       else
 	{
-	  Int currentPos = startPos - 1;
+	  int currentPos = startPos - 1;
 	  while(globalPercentile < dataArray[currentPos].coordinates[columnToSort])
 	    {
 	      currentPos--;
 	    }
-	  PosIndex[i] = currentPos + 1;
+	  posIndex.push_back(currentPos + 1);
 	}
     }
       
