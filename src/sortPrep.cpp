@@ -4,8 +4,8 @@
 using namespace std;
 void sortPrep(vector<dataStruct> &data,int column){
 	//temp array to swap data
+	int size = data.size();
 	dataStruct *tmp;
-        int size=data.size();
 	tmp =(dataStruct *) malloc((size)*sizeof(dataStruct));
 	//begin recursive sort
 	sort(data,tmp,column,0,size-1);
