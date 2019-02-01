@@ -66,4 +66,34 @@ void writeFile(std::string &filepath, std::vector<dataStruct> &dataArray)
 	}
 }
 
+/*void dumpFile(std::string &filepath, std::vector<dataStruct> &dataArray)
+{
+	int j;
+
+        std::ofstream outFile(filepath, std::ios::binary | std::ios::out);
+        if (outFile.is_open())
+        {
+
+            for (j = 0; j < dataArray.size()-1; j++)
+            {
+                outFile.write((char*)&dataArray[j].id, 4);
+                outFile.write((char*)&dataArray[j].col1, 8);
+                outFile.write((char*)&dataArray[j].col2, 8);
+                outFile.write((char*)&dataArray[j].col3, 8);
+            }
+
+            outFile.close();
+        }
+        else
+        {
+            std::cout << "\nOutput file wasn't opened properly.\n";
+            exit(1);
+        }
+
+        dataArray.clear();
+
+
+}*/
+
+
 

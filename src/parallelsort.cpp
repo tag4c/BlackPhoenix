@@ -184,9 +184,14 @@ int main(int argc, char *argv[])
 		MPI_Bcast(&globalPositionValueData.front(), arraySize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 		std::cout << "Broadcasted to everyone!" << std::endl;
 
+			vector <int> remotePosIndex;
+
 		arraySize = dataArray.size();
+
 		//double numDataEachPart;
 		vector <int> posIndex;
+
+
 
 		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
 
@@ -194,8 +199,53 @@ int main(int argc, char *argv[])
 
 		std::cout << "HEAD: " << posIndex[0] << " " << posIndex[1] << " " << std::endl;
 
+		// Comm protocol
+
+		/* 
+		Even Case: 
+
+		Send local position index array
+		remote node does the math.. to figure out how much it's receiving.
+		exchange data.
+		Reverse roles.
+		exchange data.
+
+		while(x < nodes-1)
+		if even -> myrank+x (sends data to this guy).. then receives from that guy
+
+		if odd -> myrank - x (sends to this guy) .. recv from that guy
 
 
+		next step... odd goes to myrank + x.
+				     even goes to myrank - x
+
+				     x++
+
+				     continue... until x < node-1
+
+
+
+		*/
+
+		/* Send size of posIndex */
+
+	
+			/*if (worldSize % 2 == 0) // even
+			{
+					for (i = 0; i < (worldSize)/2; i++)
+					{
+						// send posIndex 
+						MPI_Send(&posIndex[myrank], 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+
+					}
+
+
+			}
+			else
+			{
+				// odd.. 
+			}*/
+		
 
 
 
@@ -212,6 +262,7 @@ int main(int argc, char *argv[])
 	/* Slave nodes (All others) */
 	else if (myrank == 1)
 	{
+		//int columnToSort;
 		std::vector <dataStruct> dataArray;
 		vector <double> globalPositionValueData;
 		std::string filepath2 = "../datafiles/binary/output/datafile00003.bin";
@@ -231,7 +282,33 @@ int main(int argc, char *argv[])
 		std::cout << myrank<< "Received size!" << std::endl;
 		std::cout << myrank<< "Recv: " << dataArraySize << std::endl;
 		globalPositionValueData.reserve(dataArraySize);
+		globalPositionValueData.resize(dataArraySize);
 		MPI_Bcast(&globalPositionValueData.front(), dataArraySize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	
+
+		arraySize = dataArray.size();
+
+		std::cout << myrank << " GPV : " << globalPositionValueData[0] << " " << globalPositionValueData[1] << std::endl;
+
+		std::cout << myrank << " GPV size: " << globalPositionValueData.size() << std::endl;
+
+
+		//double numDataEachPart;
+		vector <int> posIndex;
+
+
+
+		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
+
+		std::cout << myrank << " " << posIndex.size() << std::endl;
+
+		std::cout << myrank << " " << posIndex[0] << " " << posIndex[1] << " " << std::endl;
+
+			/* Send size of posIndex */
+
+		vector <int> remotePosIndex;
+
+
 
 
 
@@ -257,13 +334,53 @@ int main(int argc, char *argv[])
 
 		int dataArraySize;
 		MPI_Bcast(&dataArraySize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		std::cout << myrank << "Received size!" << std::endl;
-		std::cout << myrank << "Recv: " << dataArraySize << std::endl;
+		std::cout << myrank<< "Received size!" << std::endl;
+		std::cout << myrank<< "Recv: " << dataArraySize << std::endl;
 		globalPositionValueData.reserve(dataArraySize);
+		globalPositionValueData.resize(dataArraySize);
 		MPI_Bcast(&globalPositionValueData.front(), dataArraySize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	
+
+		arraySize = dataArray.size();
+
+		std::cout << myrank << " GPV : " << globalPositionValueData[0] << " " << globalPositionValueData[1] << std::endl;
+
+		std::cout << myrank << " GPV size: " << globalPositionValueData.size() << std::endl;
+
+
+		//double numDataEachPart;
+		vector <int> posIndex;
 
 
 
+		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
+
+		std::cout << myrank << " " << posIndex.size() << std::endl;
+
+		std::cout << myrank << " " << posIndex[0] << " " << posIndex[1] << " " << std::endl;
+
+		posIndexSize = posIndex.size();
+
+		vector <int> remotePosIndex;
+
+
+			/* Send size of posIndex */
+
+	/*	arraySize = dataArray.size();
+
+		//double numDataEachPart;
+		vector <int> posIndex;
+
+
+
+		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
+
+		std::cout << myrank << " " << posIndex.size() << std::endl;
+
+		std::cout << myrank << " " << posIndex[0] << " " << posIndex[1] << " " << std::endl;
+
+
+*/
 
 
 		/*std::cout << "In rank " << myrank << std::endl;

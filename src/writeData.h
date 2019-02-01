@@ -49,4 +49,5 @@ Function Declarations
 */
 
 void writeFile(std::string &filepath, std::vector<dataStruct> &dataArray);
+//void dumpFile(std::string &filepath, std::vector<dataStruct> &dataArray);
 
