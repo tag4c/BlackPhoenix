@@ -11,6 +11,7 @@
 #include <string>
 #include <iomanip>
 #include <unistd.h>
+#include <dirent.h>
 #include "mpi.h"
 
 // Common library includes for everyone...
@@ -76,7 +77,12 @@ struct dataStruct
 using namespace std;
 
 
+
+
+void read_directory(const std::string& name, std::vector<std::string>& v);
+
 /* Main Routine */
+
 
 int main(int argc, char *argv[])
 {
@@ -85,9 +91,6 @@ int main(int argc, char *argv[])
 	int maxFiles;
 	int maxNodes;
 	int columnToSort = 0;
-
-	
-
 
 	/* Variable initialization */
 	//maxFiles = atoi(argv[1]);  // First command line argument for Number of files to read
@@ -124,28 +127,87 @@ int main(int argc, char *argv[])
 	if (myrank == 0)
 	{
 		/* Have this node read all data in and send it out first? */
+
+		std::string dirpath = "../datafiles/binary/output/";
+		std::vector <std::string> dirList;
+
+		std::vector <std::vector<std::string>> fileEachNode;
+
+		read_directory(dirpath, dirList);
+
+		// divvy up the files between nodes.
+
+		// need an array or vector to hold each nodes file list..
+		
+
+		//std::cout << worldSize << std::endl;
+
+		int files_per_node = floor(dirList.size() / worldSize);
+		int extra_files = dirList.size() % worldSize;
+
+		int assigner = 0;
+
+		int **file_range_per_node = new int*[2];
+		for (i = 0; i < worldSize; i++)
+		{
+			file_range_per_node[i] = new int;
+		}
+		for (i = 0; i < worldSize; i++)
+    	{ 	
+    	file_range_per_node[i][0] = assigner;
+    	file_range_per_node[i][1] = assigner + files_per_node - 1;
+
+    	if ((i == worldSize - 1) && file_range_per_node[i][1] <= dirList.size())
+    	{
+    		file_range_per_node[i][1] = dirList.size()-1;
+    	}
+    	assigner = assigner + files_per_node;
+    	}
+
+    	//std::cout << "Total number of files: " << dirList.size() << std::endl;
+    	std::string tmp;
+    	std::vector<string> temp;
+    	int fileCount = 0;
+    	for (i = 0; i < worldSize; i++)
+    	{
+    		for (j = file_range_per_node[i][0]; j < file_range_per_node[i][1]+1; j++)
+    		{
+    			tmp = dirList[j];
+    			temp.push_back(tmp);
+    			std::cout << "Assigning file: " << tmp << " to node: " << i << std::endl;
+    			fileCount++;
+    		}
+    		fileEachNode.push_back(temp);
+    		
+    	}
+    	//std::cout << fileCount << std::endl;
+
+    	while (sentCount < fileCount)
+    	{
+    	
+    		sendCount++;
+    	}
+
+		std::cin >> a;
+
+
+
+
 		std::vector <dataStruct> dataArray;
+
+
+
+
+
+
 		std::string filepath = "../datafiles/binary/output/datafile00001.bin";
 		
-		//std::cout << filepath << std::endl;
+	
 		readFile(filepath, dataArray);
-	//	std::cout << dataArray.size() << std::endl;
+
         sortPrep(dataArray, 0);
-	/*	int arraySize = dataArray.size();
-		std::cout << "Broadcasting size to All nodes!" << std::endl;
-		MPI_Bcast(&arraySize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		std::cout << "Broadcasting dataArray to all nodes!" << std::endl;
-		MPI_Bcast(&dataArray.front(), arraySize, MPI_dataArray, 0, MPI_COMM_WORLD);
-		std::cout << "Broadcasted to everyone!" << std::endl;
-		for (i = 0; i < 1; i++)
-		{
+	
 
-			std::cout << "Rank: " << myrank << " "<< dataArray[i].id << " " << std::setprecision(15) << dataArray[i].coordinates[0] << " " << dataArray[i].coordinates[1] << " " << dataArray[i].coordinates[2] << "\n";
-
-		}
-		*/
-	//	std::cout << dataArray.size() << std::endl;
-	//	writeFile(outfilepath, dataArray);
         vector <double> globalPositionValueData;
         vector <vector <double>> localPercentileList;
 		vector <double> localPercentile(3);
@@ -252,12 +314,6 @@ int main(int argc, char *argv[])
 
 		// pass localPercentileList to globalPosition
 
-		//std::cout << localPercentile[0] << " " << localPercentile[1] << std::endl;
-	
-
-
-		//std::cout << dataArray.size() << "\n";
-
 }
 	/* Slave nodes (All others) */
 	else if (myrank == 1)
@@ -359,9 +415,9 @@ int main(int argc, char *argv[])
 
 		std::cout << myrank << " " << posIndex[0] << " " << posIndex[1] << " " << std::endl;
 
-		posIndexSize = posIndex.size();
+	//	posIndexSize = posIndex.size();
 
-		vector <int> remotePosIndex;
+	//	vector <int> remotePosIndex;
 
 
 			/* Send size of posIndex */
@@ -422,6 +478,33 @@ int main(int argc, char *argv[])
 	return 0;
 
 
+}
+
+void read_directory(const std::string& name, std::vector<std::string>& v)
+{
+    DIR* dirp = opendir(name.c_str());
+    std::vector<std::string> tmp;
+    struct dirent * dp;
+    while ((dp = readdir(dirp)) != NULL) {
+    	if (dp->d_name != "." || dp->d_name != "..")
+    	{
+        	tmp.push_back(dp->d_name);
+        }
+    }
+    for (int i = 0; i < tmp.size(); i++)
+    {
+    	if (tmp[i] == "." || tmp[i] == "..")
+    	{
+    		continue;
+    	}
+    	else
+    	{
+    		v.push_back(tmp[i]);
+    	}
+    }
+
+
+    closedir(dirp);
 }
 
 
