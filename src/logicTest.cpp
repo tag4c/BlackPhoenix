@@ -55,15 +55,22 @@ int main(int argc, char *argv[])
 */
 	/* Scheduler Node (HEAD NODE) */
 	if (myrank == 0){
+           MPI_Request request0;
            MPI_Request request1;
            MPI_Request request2;
+           MPI_Request request3;
+
+           MPI_Status  status0;
            MPI_Status  status1;
            MPI_Status  status2;
+           MPI_Status  status3;
            int x=1; 
            int right=myrank;
            int left=myrank;
-           int doko1,doko2;
-           while(x<worldSize-1){
+           int lNewSize,rNewSize;
+           int rStart, lStart, rEnd, lEnd, rLength,lLenth;
+           vector <vector> <dataStruct> newData(worldSize);
+           while(x<=(worldSize)/2){
 
            right++;
            if(right>worldSize-1)
@@ -72,15 +79,40 @@ int main(int argc, char *argv[])
            if(left<0)
            left=worldSize-1;
 
-
-           MPI_Isend(&myrank,1,MPI_INT,right,0,MPI_COMM_WORLD,&request1);
-           MPI_Isend(&myrank,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
-           MPI_Recv(&doko1,1,MPI_INT,right,0,MPI_COMM_WORLD,&status);
-           MPI_Recv(&doko2,1,MPI_INT,left,0,MPI_COMM_WORLD,&status);
+            rStart=posIndex[right-1]+1;
+          if(right==worldSize-1)
+            rEnd=dataArray.size();
+          else 
+            rEnd=posIndex[right];
+            rLength=rEnd-rStart; 
+           MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
+	MPI_ISend(&dataArray[rStart], rLegth, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);	
+           if(left!=right){
+            lStart=posIndex[left-1]+1;
+          if(left==worldSize-1)
+            lEnd=dataArray.size();
+          else 
+            lEnd=posIndex[left];
+            lLength=lEnd-lStart; 
+           MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
+	MPI_ISend(&dataArray[lStart], lLegth, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);	
+           }
+           MPI_Recv(&rNewSize,1,MPI_INT,right,0,MPI_COMM_WORLD,&status0);
+          newData[right].reserve(rNewSize); 
+          newData[right].resize(rNewSize);
+          MPI_Recv(&newData[right].front(),rNewSize,MPI_dataArray,right,0,MPI_COMM_WORLD,&status1);
+           if(left!=right){
+           MPI_Recv(&lNewSize,1,MPI_INT,left,0,MPI_COMM_WORLD,&status2);
+          newData[left].reserve(lNewSize); 
+          newData[left].resize(lNewSize);
+          MPI_Recv(&newData[left].front(),lNewSize,MPI_dataArray,left,0,MPI_COMM_WORLD,&status3);
+           }
+           MPI_Wait(&request0,&status0);
            MPI_Wait(&request1,&status1);
-           MPI_Wait(&request2,&status2); 
-           cout<<"x="<<x<<" "<<myrank<<"<->"<<doko1<< " right" << endl;
-           cout<<"x="<<x<<" "<<myrank<<"<->"<<doko2<< " left" << endl;
+           if(left!=right){
+           MPI_Wait(&request2,&status2);
+           MPI_Wait(&request3,&status3); 
+           }
            x++;
            MPI_Barrier(MPI_COMM_WORLD);
            cout<<endl<<endl;
@@ -89,92 +121,78 @@ int main(int argc, char *argv[])
   
 	}else{
 
+           MPI_Request request0;
            MPI_Request request1;
            MPI_Request request2;
+           MPI_Request request3;
+           MPI_Status  status0;
            MPI_Status  status1;
            MPI_Status  status2;
-
+           MPI_Status  status3;
            int x=1; 
            int right=myrank;
            int left=myrank;
-           int doko1, doko2; 
-           bool first;
-           if(myrank%2==0)
-           first=true;
-           else
-           first=false;
-           while(x<worldSize-1){
+           int lNewSize,rNewSize;
+           int rStart, lStart, rEnd, lEnd, rLength,lLenth;
+           vector <vector> <dataStruct> newData(worldSize);
+           while(x<=(worldSize)/2){
+
            right++;
            if(right>worldSize-1)
            right=0;
            left--;
            if(left<0)
            left=worldSize-1;
-
-           MPI_Isend(&myrank,1,MPI_INT,right,0,MPI_COMM_WORLD,&request1);
-           MPI_Isend(&myrank,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
-           MPI_Recv(&doko1,1,MPI_INT,right,0,MPI_COMM_WORLD,&status);
-           MPI_Recv(&doko2,1,MPI_INT,left,0,MPI_COMM_WORLD,&status);
-           MPI_Wait(&request1,&status1); 
-           MPI_Wait(&request2,&status2); 
-         //  cout<<"x="<<x<<" "<<myrank<<"<->"<<doko1<< " right" << endl;
-          // cout<<"x="<<x<<" "<<myrank<<"<->"<<doko2<< " left" << endl;
+           if(right==0){
+             rStart=0; 
+           }
+           else{
+            rStart=posIndex[right-1]+1;
+        }
+          if(right==worldSize-1)
+            rEnd=dataArray.size();
+          else 
+            rEnd=posIndex[right];
+            rLength=rEnd-rStart; 
+           MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
+	MPI_ISend(&dataArray[rStart], rLegth, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);	
+           if(left!=right){
+             if(right==0){
+                rStart=0; 
+               }else
+            lStart=posIndex[left-1]+1;
+          if(left==worldSize-1)
+            lEnd=dataArray.size();
+          else 
+            lEnd=posIndex[left];
+            lLength=lEnd-lStart; 
+           MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
+	MPI_ISend(&dataArray[lStart], lLegth, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);	
+           }
+           MPI_Recv(&rNewSize,1,MPI_INT,right,0,MPI_COMM_WORLD,&status0);
+          newData[right].reserve(rNewSize); 
+          newData[right].resize(rNewSize);
+          MPI_Recv(&newData[right].front(),rNewSize,MPI_dataArray,right,0,MPI_COMM_WORLD,&status1);
+           if(left!=right){
+           MPI_Recv(&lNewSize,1,MPI_INT,left,0,MPI_COMM_WORLD,&status2);
+          newData[left].reserve(lNewSize); 
+          newData[left].resize(lNewSize);
+          MPI_Recv(&newData[left].front(),lNewSize,MPI_dataArray,left,0,MPI_COMM_WORLD,&status3);
+           }
+           MPI_Wait(&request0,&status0);
+           MPI_Wait(&request1,&status1);
+           if(left!=right){
+           MPI_Wait(&request2,&status2);
+           MPI_Wait(&request3,&status3); 
+           }
            x++;
            MPI_Barrier(MPI_COMM_WORLD);
+           cout<<endl<<endl;
            MPI_Barrier(MPI_COMM_WORLD);
-
-          /* 
-           if(first){
-           if(myrank<right){
-           MPI_Send(&myrank,1,MPI_INT,right,0,MPI_COMM_WORLD);
-           MPI_Recv(&doko,1,MPI_INT,right,0,MPI_COMM_WORLD,&status);
            }
-           else{
-           MPI_Recv(&doko,1,MPI_INT,right,0,MPI_COMM_WORLD,&status);
-           MPI_Send(&myrank,1,MPI_INT,right,0,MPI_COMM_WORLD);
-           }
-           cout<<"x="<<x<<" "<<myrank<<"<->"<<doko<< " first" << endl;
-           }
-           else if(!first){
-           if(myrank<left){
-           MPI_Send(&myrank,1,MPI_INT,left,0,MPI_COMM_WORLD);
-           MPI_Recv(&doko,1,MPI_INT,left,0,MPI_COMM_WORLD,&status);
-           }
-           else{
-           MPI_Recv(&doko,1,MPI_INT,left,0,MPI_COMM_WORLD,&status);
-           MPI_Send(&myrank,1,MPI_INT,left,0,MPI_COMM_WORLD);
-           }
-           cout<<"x="<<x<<" "<<myrank<<"<->"<<doko<< " first" << endl;
-           }
-           if(right==left)
-           break;
-
-           MPI_Barrier(MPI_COMM_WORLD);
-           if(first){
-           if(myrank<left){
-           MPI_Send(&myrank,1,MPI_INT,left,0,MPI_COMM_WORLD);
-           MPI_Recv(&doko,1,MPI_INT,left,0,MPI_COMM_WORLD,&status);
-           }
-           else{
-           MPI_Recv(&doko,1,MPI_INT,left,0,MPI_COMM_WORLD,&status);
-           MPI_Send(&myrank,1,MPI_INT,left,0,MPI_COMM_WORLD);
-           }
-           cout<<"x="<<x<<" "<<myrank<<"<->"<<doko<< " second" << endl;
-           }
-           else if(!first){
-           if(myrank<right){
-           MPI_Send(&myrank,1,MPI_INT,right,0,MPI_COMM_WORLD);
-           MPI_Recv(&doko,1,MPI_INT,right,0,MPI_COMM_WORLD,&status);
-           }
-           else{
-           MPI_Recv(&doko,1,MPI_INT,right,0,MPI_COMM_WORLD,&status);
-           MPI_Send(&myrank,1,MPI_INT,right,0,MPI_COMM_WORLD);
-           }
-           cout<<"x="<<x<<" "<<myrank<<"<->"<<doko<< " second" << endl;
-           }i*/
+          }
 
 
-}
 }
 MPI_Finalize();
 return 0;
