@@ -79,8 +79,7 @@ using namespace std;
 
 
 
-void read_directory(const std::string& name, std::vector<std::string>& v);
-
+void read_directory(const std::string& name, std::vector<int>& v);
 /* Main Routine */
 
 
@@ -104,8 +103,7 @@ int main(int argc, char *argv[])
 	alarm(180);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 	MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
-	MPI_Request request;
-	MPI_Status status;
+	
 
 
 	/*  Create our MPI Datatype to pass our structure back and forth  */
@@ -121,17 +119,19 @@ int main(int argc, char *argv[])
 
 	MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
 
-	std::cout << "My rank: " << myrank << std::endl;
+
+	//std::cout << "My rank: " << myrank << std::endl;
 
 	/* Scheduler Node (HEAD NODE) */
 	if (myrank == 0)
 	{
 		/* Have this node read all data in and send it out first? */
-
+		MPI_Request request;
+		MPI_Status status;
 		std::string dirpath = "../datafiles/binary/output/";
-		std::vector <std::string> dirList;
+		std::vector <int> dirList;
 
-		std::vector <std::vector<std::string>> fileEachNode;
+		std::vector <std::vector<int>> fileEachNode;
 
 		read_directory(dirpath, dirList);
 
@@ -147,10 +147,10 @@ int main(int argc, char *argv[])
 
 		int assigner = 0;
 
-		int **file_range_per_node = new int*[2];
+		int **file_range_per_node = new int*[worldSize];
 		for (i = 0; i < worldSize; i++)
 		{
-			file_range_per_node[i] = new int;
+			file_range_per_node[i] = new int[2];
 		}
 		for (i = 0; i < worldSize; i++)
     	{ 	
@@ -165,8 +165,8 @@ int main(int argc, char *argv[])
     	}
 
     	//std::cout << "Total number of files: " << dirList.size() << std::endl;
-    	std::string tmp;
-    	std::vector<string> temp;
+    	int tmp;
+    	std::vector<int> temp;
     	int fileCount = 0;
     	for (i = 0; i < worldSize; i++)
     	{
@@ -174,44 +174,73 @@ int main(int argc, char *argv[])
     		{
     			tmp = dirList[j];
     			temp.push_back(tmp);
-    			std::cout << "Assigning file: " << tmp << " to node: " << i << std::endl;
+    			//std::cout << "Assigning file: " << tmp << " to node: " << i << std::endl;
     			fileCount++;
     		}
+    		
     		fileEachNode.push_back(temp);
+    		temp.clear();
     		
     	}
-    	//std::cout << fileCount << std::endl;
 
-    	while (sentCount < fileCount)
-    	{
+    	// free up the array created by new
+
+    	for (i = 0; i < worldSize; i++)
+		{
+			delete file_range_per_node[i];
+		}
+		delete file_range_per_node;
+		
+
     	
-    		sendCount++;
+    	int sentCount = 0;
+    	//int fileEachNodeSize = fileEachNode[0].size();
+    	//fileEachNodeSize *= fileEachNode.size();
+
+    
+
+    		// Bcast size of fileEachNode
+    	//MPI_Bcast(&fileEachNode.front(), fileEachNode.size(), MPI_INT, 0, MPI_COMM_WORLD);
+    	// <std::vector<std::string>> fileEachNode;dd
+    	int fileEachNodeSize = 0;
+
+    	for (i = 1; i < worldSize; i++)
+    	{
+    		fileEachNodeSize = fileEachNode[i].size();
+
+    		MPI_Isend(&fileEachNodeSize, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
+    		MPI_Isend(&fileEachNode[i].front(), fileEachNodeSize, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
     	}
 
-		std::cin >> a;
+    	fileEachNodeSize = fileEachNode[0].size();
 
 
+    	std::vector <std::string> fileList(fileEachNodeSize);
 
+		std::string fileName = "../datafiles/binary/output/datafile";
+
+		for (i = 0; i < fileEachNodeSize; i++)
+		{
+			std::string temp = to_string(fileEachNode[0][i]);
+			while (temp.length() < 5)
+			{
+				temp = "0" + temp;
+			}
+			temp = temp + ".bin";
+			fileList[i] = fileName + temp;
+		}
 
 		std::vector <dataStruct> dataArray;
-
-
-
-
-
-
-		std::string filepath = "../datafiles/binary/output/datafile00001.bin";
 		
-	
-		readFile(filepath, dataArray);
+		readFile(fileList[0], dataArray);
 
         sortPrep(dataArray, 0);
 	
 
         vector <double> globalPositionValueData;
         vector <vector <double>> localPercentileList;
-		vector <double> localPercentile(3);
-        int numOfPercentiles = 3;
+		vector <double> localPercentile(worldSize-1);
+        int numOfPercentiles = worldSize-1;
 		int arraySize = dataArray.size();
         double numDataEachPart = 0.0;
 		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 
@@ -224,27 +253,17 @@ int main(int argc, char *argv[])
 
 		}
 
-		std::cout << "HEAD: " << localPercentileList.size() << std::endl;
-
-		for (i = 0; i < 3; i++)
-		{
-			std::cout << "HEAD: " << localPercentileList[i][0] << std::endl;
-		}
-
 		globalPositionValue(localPercentileList, worldSize, globalPositionValueData);
 		
-		std::cout << "HEAD: Size of gpv: " << globalPositionValueData.size() << std::endl;
-
-		std::cout << "HEAD: " << globalPositionValueData[0] << " " << globalPositionValueData[1] << std::endl;
 
 		/* Broadcast gpv data to all nodes */
 
 		arraySize = globalPositionValueData.size();
-		std::cout << "Broadcasting gpv data to All nodes!" << std::endl;
+	//	std::cout << "Broadcasting gpv data to All nodes!" << std::endl;
 		MPI_Bcast(&arraySize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		std::cout << "Broadcasting dataArray to all nodes!" << std::endl;
+//		std::cout << "Broadcasting dataArray to all nodes!" << std::endl;
 		MPI_Bcast(&globalPositionValueData.front(), arraySize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-		std::cout << "Broadcasted to everyone!" << std::endl;
+//		std::cout << "Broadcasted to everyone!" << std::endl;
 
 			vector <int> remotePosIndex;
 
@@ -263,213 +282,81 @@ int main(int argc, char *argv[])
 
 		// Comm protocol
 
-		/* 
-		Even Case: 
-
-		Send local position index array
-		remote node does the math.. to figure out how much it's receiving.
-		exchange data.
-		Reverse roles.
-		exchange data.
-
-		while(x < nodes-1)
-		if even -> myrank+x (sends data to this guy).. then receives from that guy
-
-		if odd -> myrank - x (sends to this guy) .. recv from that guy
-
-
-		next step... odd goes to myrank + x.
-				     even goes to myrank - x
-
-				     x++
-
-				     continue... until x < node-1
-
-
-
-		*/
-
-		/* Send size of posIndex */
-
-	
-			/*if (worldSize % 2 == 0) // even
-			{
-					for (i = 0; i < (worldSize)/2; i++)
-					{
-						// send posIndex 
-						MPI_Send(&posIndex[myrank], 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-
-					}
-
-
-			}
-			else
-			{
-				// odd.. 
-			}*/
-		
-
-
-
 
 		// pass localPercentileList to globalPosition
 
+		MPI_Barrier(MPI_COMM_WORLD);
+
 }
 	/* Slave nodes (All others) */
-	else if (myrank == 1)
-	{
-		//int columnToSort;
-		std::vector <dataStruct> dataArray;
-		vector <double> globalPositionValueData;
-		std::string filepath2 = "../datafiles/binary/output/datafile00003.bin";
-		readFile(filepath2, dataArray);
-		sortPrep(dataArray, 0);
-		vector <double> localPercentile(3);
-        int numOfPercentiles = 3;
-		int arraySize = dataArray.size();
-        double numDataEachPart = 0.0;
-		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 
-		/* Send local percentile to head node */
-
-		MPI_Send(&localPercentile.front(), worldSize - 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD); //, &request);
-
-		int dataArraySize;
-		MPI_Bcast(&dataArraySize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		std::cout << myrank<< "Received size!" << std::endl;
-		std::cout << myrank<< "Recv: " << dataArraySize << std::endl;
-		globalPositionValueData.reserve(dataArraySize);
-		globalPositionValueData.resize(dataArraySize);
-		MPI_Bcast(&globalPositionValueData.front(), dataArraySize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	
-
-		arraySize = dataArray.size();
-
-		std::cout << myrank << " GPV : " << globalPositionValueData[0] << " " << globalPositionValueData[1] << std::endl;
-
-		std::cout << myrank << " GPV size: " << globalPositionValueData.size() << std::endl;
-
-
-		//double numDataEachPart;
-		vector <int> posIndex;
-
-
-
-		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
-
-		std::cout << myrank << " " << posIndex.size() << std::endl;
-
-		std::cout << myrank << " " << posIndex[0] << " " << posIndex[1] << " " << std::endl;
-
-			/* Send size of posIndex */
-
-		vector <int> remotePosIndex;
-
-
-
-
-
-
-
-
-	}
 	else
 	{
+		MPI_Request request;
+		MPI_Status status;
+		//int columnToSort;
+		int fileNodeEachSize = 0;
+
+		MPI_Recv(&fileNodeEachSize, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+
+		std::vector<int> localFileList;
+		localFileList.reserve(fileNodeEachSize);
+		localFileList.resize(fileNodeEachSize);
+
+		MPI_Recv(&localFileList.front(), fileNodeEachSize, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+
+		std::vector <std::string> fileList(fileNodeEachSize);
+
+		std::string fileName = "../datafiles/binary/output/datafile";
+
+		for (i = 0; i < fileNodeEachSize; i++)
+		{
+			std::string temp = to_string(localFileList[i]);
+			while (temp.length() < 5)
+			{
+				temp = "0" + temp;
+			}
+			temp = temp + ".bin";
+			fileList[i] = fileName + temp;
+
+
+		}
+
 		std::vector <dataStruct> dataArray;
-		std::string filepath2 = "../datafiles/binary/output/datafile00002.bin";
 		vector <double> globalPositionValueData;
-		readFile(filepath2, dataArray);
+		readFile(fileList[0], dataArray);
 		sortPrep(dataArray, 0);
-		vector <double> localPercentile(3);
-        int numOfPercentiles = 3;
+		vector <double> localPercentile(worldSize-1);
+        int numOfPercentiles = worldSize-1;
 		int arraySize = dataArray.size();
         double numDataEachPart = 0.0;
 		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 
 		/* Send local percentile to head node */
 
+
 		MPI_Send(&localPercentile.front(), worldSize - 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD); //, &request);
 
 		int dataArraySize;
 		MPI_Bcast(&dataArraySize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		std::cout << myrank<< "Received size!" << std::endl;
-		std::cout << myrank<< "Recv: " << dataArraySize << std::endl;
+
 		globalPositionValueData.reserve(dataArraySize);
 		globalPositionValueData.resize(dataArraySize);
 		MPI_Bcast(&globalPositionValueData.front(), dataArraySize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	
 
 		arraySize = dataArray.size();
 
-		std::cout << myrank << " GPV : " << globalPositionValueData[0] << " " << globalPositionValueData[1] << std::endl;
-
-		std::cout << myrank << " GPV size: " << globalPositionValueData.size() << std::endl;
-
-
-		//double numDataEachPart;
 		vector <int> posIndex;
-
-
 
 		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
 
 		std::cout << myrank << " " << posIndex.size() << std::endl;
 
 		std::cout << myrank << " " << posIndex[0] << " " << posIndex[1] << " " << std::endl;
-
-	//	posIndexSize = posIndex.size();
-
-	//	vector <int> remotePosIndex;
-
 
 			/* Send size of posIndex */
 
-	/*	arraySize = dataArray.size();
-
-		//double numDataEachPart;
-		vector <int> posIndex;
-
-
-
-		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
-
-		std::cout << myrank << " " << posIndex.size() << std::endl;
-
-		std::cout << myrank << " " << posIndex[0] << " " << posIndex[1] << " " << std::endl;
-
-
-*/
-
-
-		/*std::cout << "In rank " << myrank << std::endl;
-		std::vector <dataStruct> dataArray;
-		int dataArraySize;
-		MPI_Bcast(&dataArraySize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		std::cout << "Received size!" << std::endl;
-		std::cout << "Recv: " << dataArraySize << std::endl;
-		dataArray.reserve(dataArraySize);
-		MPI_Bcast(&dataArray.front(), dataArraySize, MPI_dataArray, 0, MPI_COMM_WORLD);
-		for (i = 0; i < 1; i++)
-		{
-
-			std::cout << "Rank: " << myrank << " "<< dataArray[i].id << " " << std::setprecision(15) << dataArray[i].coordinates[0] << " " << dataArray[i].coordinates[1] << " " << dataArray[i].coordinates[2] << "\n";
-
-		}
-		*/
-		//MPI_Recv(&dataArray, dataArraySize, MPI_dataArray, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);	
-                //std::cout << dataArray[0].id << std::endl;
-       //std::cout << dataArraySize << std::endl;
-//       		for (i = 0; i < dataArraySize; i++)
-	//	{
-	//		std::cout << dataArray[i].id << " " << dataArray[i].coordinates[0] << " " << dataArray[i].coordinates[1] << " " << dataArray.coordinates[2] << std::endl;
-	//	}
-       		
+			MPI_Barrier(MPI_COMM_WORLD);
 
 	}
-
-
-
-
-
-
 
 	MPI_Type_free(&MPI_dataArray); // clean up
 	MPI_Finalize(); // clean up MPI usage
@@ -480,11 +367,12 @@ int main(int argc, char *argv[])
 
 }
 
-void read_directory(const std::string& name, std::vector<std::string>& v)
+void read_directory(const std::string& name, std::vector<int>& v)
 {
     DIR* dirp = opendir(name.c_str());
     std::vector<std::string> tmp;
     struct dirent * dp;
+    int tempInt = 0;
     while ((dp = readdir(dirp)) != NULL) {
     	if (dp->d_name != "." || dp->d_name != "..")
     	{
@@ -499,7 +387,10 @@ void read_directory(const std::string& name, std::vector<std::string>& v)
     	}
     	else
     	{
-    		v.push_back(tmp[i]);
+    		std::string temp;
+    		temp = tmp[i].substr(8, 5);
+    		tempInt = stoi(temp);
+    		v.push_back(tempInt);
     	}
     }
 
