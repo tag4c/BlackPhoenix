@@ -40,7 +40,7 @@ void sperateArray(std::vector<dataStruct>& dataArray, int& dataNum, std::vector<
 	    {
 	      currentPos--;
 	    }
-	  posIndex.push_back(currentPos + 1);
+	  posIndex.push_back(currentPos);
 	}
     }
       

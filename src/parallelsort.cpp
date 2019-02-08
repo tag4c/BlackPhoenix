@@ -232,6 +232,7 @@ int main(int argc, char *argv[])
 		}
 
 		std::vector <dataStruct> dataArray;
+		std::cout << myrank << " read " << fileList[0] << std::endl;
 		
 		readFile(fileList[0], dataArray);
 
@@ -336,7 +337,7 @@ int main(int argc, char *argv[])
 
 			rLength=rEnd-rStart+1; 
 
-			cout<<myrank<<" sending "<<rLength<<" to "<<right<<endl;
+			cout<<myrank<<" sending "<<rLength<<" to "<<right << " " << dataArray.at(rStart).coordinates[0] << " " << dataArray.at(rEnd).coordinates[0] <<endl;
 
 			MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
 			MPI_Isend(&dataArray.at(rStart), rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);
@@ -497,6 +498,7 @@ int main(int argc, char *argv[])
 
 		std::vector <dataStruct> dataArray;
 		vector <double> globalPositionValueData;
+		std::cout << myrank << " read " << fileList[0] << std::endl;
 		readFile(fileList[0], dataArray);
 		sortPrep(dataArray, 0);
 	//	cout<<"my rank is "<<myrank<<" vector value is "<<dataArray[0].coordinates[0]<<endl;
@@ -596,7 +598,8 @@ int main(int argc, char *argv[])
 				cout<<"rEnd="<<rEnd<<" rStart="<<rStart<<endl;
 			}
 
-			cout<<myrank<<" sending "<<rLength<<" to "<<right<<endl;
+			cout<<myrank<<" sending "<<rLength<<" to "<<right << " " << dataArray.at(rStart).coordinates[0] << " " << dataArray.at(rEnd-1).coordinates[0] <<endl;
+
 			sentTotal += rLength;
 
 			MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
