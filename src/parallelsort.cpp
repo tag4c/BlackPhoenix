@@ -86,7 +86,8 @@ void read_directory(const std::string& name, std::vector<int>& v);
 int main(int argc, char *argv[])
 {
 	/* Variable Declarations */
-	int i,j,k;
+	int i,j,
+	k;
 	int maxFiles;
 	int maxNodes;
 	int columnToSort = 0;
@@ -153,69 +154,69 @@ int main(int argc, char *argv[])
 			file_range_per_node[i] = new int[2];
 		}
 		for (i = 0; i < worldSize; i++)
-    	{ 	
-    	file_range_per_node[i][0] = assigner;
-    	file_range_per_node[i][1] = assigner + files_per_node - 1;
+		{ 	
+			file_range_per_node[i][0] = assigner;
+			file_range_per_node[i][1] = assigner + files_per_node - 1;
 
-    	if ((i == worldSize - 1) && file_range_per_node[i][1] <= dirList.size())
-    	{
-    		file_range_per_node[i][1] = dirList.size()-1;
-    	}
-    	assigner = assigner + files_per_node;
-    	}
+			if ((i == worldSize - 1) && file_range_per_node[i][1] <= dirList.size())
+			{
+				file_range_per_node[i][1] = dirList.size()-1;
+			}
+			assigner = assigner + files_per_node;
+		}
 
     	//std::cout << "Total number of files: " << dirList.size() << std::endl;
-    	int tmp;
-    	std::vector<int> temp;
-    	int fileCount = 0;
-    	for (i = 0; i < worldSize; i++)
-    	{
-    		for (j = file_range_per_node[i][0]; j < file_range_per_node[i][1]+1; j++)
-    		{
-    			tmp = dirList[j];
-    			temp.push_back(tmp);
+		int tmp;
+		std::vector<int> temp;
+		int fileCount = 0;
+		for (i = 0; i < worldSize; i++)
+		{
+			for (j = file_range_per_node[i][0]; j < file_range_per_node[i][1]+1; j++)
+			{
+				tmp = dirList[j];
+				temp.push_back(tmp);
     			//std::cout << "Assigning file: " << tmp << " to node: " << i << std::endl;
-    			fileCount++;
-    		}
-    		
-    		fileEachNode.push_back(temp);
-    		temp.clear();
-    		
-    	}
+				fileCount++;
+			}
+
+			fileEachNode.push_back(temp);
+			temp.clear();
+
+		}
 
     	// free up the array created by new
 
-    	for (i = 0; i < worldSize; i++)
+		for (i = 0; i < worldSize; i++)
 		{
 			delete file_range_per_node[i];
 		}
 		delete file_range_per_node;
 		
 
-    	
-    	int sentCount = 0;
+
+		int sentCount = 0;
     	//int fileEachNodeSize = fileEachNode[0].size();
     	//fileEachNodeSize *= fileEachNode.size();
 
-    
+
 
     		// Bcast size of fileEachNode
     	//MPI_Bcast(&fileEachNode.front(), fileEachNode.size(), MPI_INT, 0, MPI_COMM_WORLD);
     	// <std::vector<std::string>> fileEachNode;dd
-    	int fileEachNodeSize = 0;
+		int fileEachNodeSize = 0;
 
-    	for (i = 1; i < worldSize; i++)
-    	{
-    		fileEachNodeSize = fileEachNode[i].size();
+		for (i = 1; i < worldSize; i++)
+		{
+			fileEachNodeSize = fileEachNode[i].size();
 
-    		MPI_Isend(&fileEachNodeSize, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
-    		MPI_Isend(&fileEachNode[i].front(), fileEachNodeSize, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
-    	}
+			MPI_Isend(&fileEachNodeSize, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
+			MPI_Isend(&fileEachNode[i].front(), fileEachNodeSize, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
+		}
 
-    	fileEachNodeSize = fileEachNode[0].size();
+		fileEachNodeSize = fileEachNode[0].size();
 
 
-    	std::vector <std::string> fileList(fileEachNodeSize);
+		std::vector <std::string> fileList(fileEachNodeSize);
 
 		std::string fileName = "../datafiles/binary/output/datafile";
 
@@ -234,15 +235,15 @@ int main(int argc, char *argv[])
 		
 		readFile(fileList[0], dataArray);
 
-        sortPrep(dataArray, 0);
-	
+		sortPrep(dataArray, 0);
 
-        vector <double> globalPositionValueData;
-        vector <vector <double>> localPercentileList;
+
+		vector <double> globalPositionValueData;
+		vector <vector <double>> localPercentileList;
 		vector <double> localPercentile(worldSize-1);
-        int numOfPercentiles = worldSize;
+		int numOfPercentiles = worldSize;
 		int arraySize = dataArray.size();
-        double numDataEachPart = 0.0;
+		double numDataEachPart = 0.0;
 		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 
 		localPercentileList.push_back(localPercentile);
 		// receive percentiles from everyone
@@ -265,7 +266,7 @@ int main(int argc, char *argv[])
 		MPI_Bcast(&globalPositionValueData.front(), arraySize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 //		std::cout << "Broadcasted to everyone!" << std::endl;
 
-			vector <int> remotePosIndex;
+		vector <int> remotePosIndex;
 
 		arraySize = dataArray.size();
 
@@ -278,6 +279,7 @@ int main(int argc, char *argv[])
 
 		std::cout << "HEAD: " << posIndex.size() << std::endl;
 
+		
 		std::cout << "HEAD: " << posIndex[0] << " " << posIndex[1] << " " << std::endl;
 
 		// Comm protocol
@@ -286,77 +288,163 @@ int main(int argc, char *argv[])
 		// pass localPercentileList to globalPosition
 
 		MPI_Barrier(MPI_COMM_WORLD);
-              
-	           MPI_Request request0;
-	           MPI_Request request1;
-	           MPI_Request request2;
-	           MPI_Request request3;
-	
-	           MPI_Status  status0;
-	           MPI_Status  status1;
-	           MPI_Status  status2;
-	           MPI_Status  status3;
-	           int x=1; 
-	           int right=myrank;
-	           int left=myrank;
-	           int lNewSize,rNewSize;
-	           int rStart, lStart, rEnd, lEnd, rLength,lLength;
-	           vector <vector <dataStruct>> newData(worldSize);
-	           while(x<=(worldSize)/2){
-	
-	           right++;
-	           if(right>worldSize-1)
-	           right=0;
-	           left--;
-	           if(left<0)
-	           left=worldSize-1;
-	
-	            rStart=posIndex[right-1]+1;
-	          if(right==worldSize-1)
-	            rEnd=dataArray.size();
-	          else 
-	            rEnd=posIndex[right];
-	            rLength=rEnd-rStart; 
-                   cout<<myrank<<" sending "<<rLength<<" to "<<right<<endl;
-	           MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
-		MPI_Isend(&dataArray.at(rStart), rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);	
-	           if(left!=right){
-	            lStart=posIndex[left-1]+1;
-	          if(left==worldSize-1)
-	            lEnd=dataArray.size();
-	          else 
-	            lEnd=posIndex[left];
-	            lLength=lEnd-lStart; 
-	           MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
-		MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);	
-	           }
-	           MPI_Recv(&rNewSize,1,MPI_INT,right,0,MPI_COMM_WORLD,&status0);
-	          newData[right].reserve(rNewSize); 
-	          newData[right].resize(rNewSize);
-	          MPI_Recv(&newData[right].front(),rNewSize,MPI_dataArray,right,0,MPI_COMM_WORLD,&status1);
-	           if(left!=right){
-	           MPI_Recv(&lNewSize,1,MPI_INT,left,0,MPI_COMM_WORLD,&status2);
-	          newData[left].reserve(lNewSize); 
-	          newData[left].resize(lNewSize);
-	          MPI_Recv(&newData[left].front(),lNewSize,MPI_dataArray,left,0,MPI_COMM_WORLD,&status3);
-	           }
-	           MPI_Wait(&request0,&status0);
-	           MPI_Wait(&request1,&status1);
-	           if(left!=right){
-	           MPI_Wait(&request2,&status2);
-	           MPI_Wait(&request3,&status3); 
-	           }
-	           x++;
-	           MPI_Barrier(MPI_COMM_WORLD);
-	           cout<<endl<<endl;
-	           MPI_Barrier(MPI_COMM_WORLD);
-	           }
-                 for(int k=1;k<worldSize;k++){
-                   cout<<"first value in "<<k<<" vector is "<<newData[k][0].coordinates[0]<<endl;
-                   }
 
+		MPI_Request request0;
+		MPI_Request request1;
+		MPI_Request request2;
+		MPI_Request request3;
+
+		MPI_Status  status0;
+		MPI_Status  status1;
+		MPI_Status  status2;
+		MPI_Status  status3;
+		int x=1; 
+		int right=myrank;
+		int left=myrank;
+		int lNewSize,rNewSize;
+		int rStart, lStart, rEnd, lEnd, rLength,lLength;
+		vector <vector <dataStruct>> newData(worldSize);
+		while(x<=(worldSize)/2){
+
+			right++;
+			if(right>worldSize-1)
+				right=0;
+			left--;
+
+			if(left<0)
+				left=worldSize-1;
+
+			rStart=posIndex[right-1]+1;
+
+			if(right==worldSize-1)
+				rEnd=dataArray.size();
+
+			else 
+				rEnd=posIndex[right];
+
+			rLength=rEnd-rStart+1; 
+
+			cout<<myrank<<" sending "<<rLength<<" to "<<right<<endl;
+
+			MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
+			MPI_Isend(&dataArray.at(rStart), rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);
+
+			if(left!=right){
+
+				lStart=posIndex[left-1]+1;
+
+				if(left==worldSize-1)
+					lEnd=dataArray.size();
+
+				else 
+					lEnd=posIndex[left];
+
+				lLength=lEnd-lStart+1; 
+
+				MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
+				MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);	
+
+			}
+
+			MPI_Recv(&rNewSize,1,MPI_INT,right,0,MPI_COMM_WORLD,&status0);
+
+			newData[right].reserve(rNewSize); 
+			newData[right].resize(rNewSize);
+
+			MPI_Recv(&newData[right].front(),rNewSize,MPI_dataArray,right,0,MPI_COMM_WORLD,&status1);
+
+			if(left!=right){
+
+				MPI_Recv(&lNewSize,1,MPI_INT,left,0,MPI_COMM_WORLD,&status2);
+
+				newData[left].reserve(lNewSize); 
+				newData[left].resize(lNewSize);
+
+				MPI_Recv(&newData[left].front(),lNewSize,MPI_dataArray,left,0,MPI_COMM_WORLD,&status3);
+
+			}
+
+			MPI_Wait(&request0,&status0);
+			MPI_Wait(&request1,&status1);
+
+			if(left!=right){
+
+				MPI_Wait(&request2,&status2);
+				MPI_Wait(&request3,&status3); 
+
+			}
+
+			x++;
 			MPI_Barrier(MPI_COMM_WORLD);
-}
+			cout<<endl<<endl;
+			MPI_Barrier(MPI_COMM_WORLD);
+
+		}
+
+
+
+		// copy vector selection
+
+		for (k = 0; k < posIndex[0]; k++)
+		{
+			newData[myrank].push_back(dataArray[k]);
+		}
+
+		int totalSize = 0;
+
+		for (k = 0; k < worldSize; k++)
+		{
+			totalSize += newData[k].size();
+			std::cout << myrank << " " << k << " " << newData[k].size() << std::endl;
+
+		}
+
+		std::cout << myrank << " total size recv: " << totalSize << std::endl;
+
+
+		// clear old data
+
+		dataArray.clear();
+		dataArray.shrink_to_fit();
+
+		// make new vector from smaller ones
+
+		for (j = 0; j < worldSize; j++)
+		{
+			for (k = 0; k < newData[j].size(); k++)
+			{
+				dataArray.push_back(newData[j][k]);
+			}
+		}
+
+		// sort
+
+		sortPrep(dataArray, 0);
+
+		int linecount = 0;
+		std::string filepath = to_string(myrank) + "output.txt";
+		std::ofstream file(filepath);
+
+		std::cout << "Size of dataArray: " << dataArray.size() << std::endl;
+		// write new files
+
+		if (file.is_open())
+	{
+		while ( linecount < dataArray.size() )
+		{
+
+            file << std::setprecision(15) << dataArray[linecount].coordinates[0] << "\n";
+        //             std::cout << dataArray[linecount].id << " " << std::setprecision(15) << dataArray[linecount].coordinates[0] << " " << dataArray[linecount].coordinates[1] << " " << dataArray[linecount].coordinates[2] << "\n";
+			linecount++;
+		}
+
+		file.close();
+
+
+	}
+
+		MPI_Barrier(MPI_COMM_WORLD);
+	}
 	/* Slave nodes (All others) */
 	else
 	{
@@ -394,11 +482,11 @@ int main(int argc, char *argv[])
 		vector <double> globalPositionValueData;
 		readFile(fileList[0], dataArray);
 		sortPrep(dataArray, 0);
-                cout<<"my rank is "<<myrank<<" vector value is "<<dataArray[0].coordinates[0]<<endl;
+		cout<<"my rank is "<<myrank<<" vector value is "<<dataArray[0].coordinates[0]<<endl;
 		vector <double> localPercentile(worldSize-1);
-        int numOfPercentiles = worldSize;
+		int numOfPercentiles = worldSize;
 		int arraySize = dataArray.size();
-        double numDataEachPart = 0.0;
+		double numDataEachPart = 0.0;
 		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 
 		/* Send local percentile to head node */
 
@@ -424,84 +512,214 @@ int main(int argc, char *argv[])
 
 			/* Send size of posIndex */
 
-			MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_WORLD);
 
-	           MPI_Request request0;
-	           MPI_Request request1;
-	           MPI_Request request2;
-	           MPI_Request request3;
-	           MPI_Status  status0;
-	           MPI_Status  status1;
-	           MPI_Status  status2;
-	           MPI_Status  status3;
-	           int x=1; 
-	           int right=myrank;
-	           int left=myrank;
-	           int lNewSize,rNewSize;
-	           int rStart, lStart, rEnd, lEnd, rLength,lLength;
-	           vector <vector <dataStruct>> newData(worldSize);
-	           while(x<=(worldSize)/2){
-	
-	           right++;
-	           if(right>worldSize-1)
-	           right=0;
-	           left--;
-	           if(left<0)
-	           left=worldSize-1;
-	           if(right==0){
-	             rStart=0; 
-	           }
-	           else{
-	            rStart=posIndex[right-1]+1;
-	        }
-	          if(right==worldSize-1)
-	            rEnd=dataArray.size();
-	          else 
-	            rEnd=posIndex[right];
-	            rLength=rEnd-rStart; 
-                  if(myrank==2){
-                    cout<<"rEnd="<<rEnd<<" rStart="<<rStart<<endl;
-                    }
-                   cout<<myrank<<" sending "<<rLength<<" to "<<right<<endl;
-	           MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
-		MPI_Isend(&dataArray.at(rStart), rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);	
-	           if(left!=right){
-	             if(left==0){
-	                lStart=0; 
-	               }else
-	            lStart=posIndex[left-1]+1;
-	          if(left==worldSize-1)
-	            lEnd=dataArray.size();
-	          else 
-	            lEnd=posIndex[left];
-	            lLength=lEnd-lStart; 
-	           MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
-		MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);	
-	           }
-	           MPI_Recv(&rNewSize,1,MPI_INT,right,0,MPI_COMM_WORLD,&status0);
-	          newData[right].reserve(rNewSize); 
-	          newData[right].resize(rNewSize);
-	          MPI_Recv(&newData[right].front(),rNewSize,MPI_dataArray,right,0,MPI_COMM_WORLD,&status1);
-	           if(left!=right){
-	           MPI_Recv(&lNewSize,1,MPI_INT,left,0,MPI_COMM_WORLD,&status2);
-	          newData[left].reserve(lNewSize); 
-	          newData[left].resize(lNewSize);
-	          MPI_Recv(&newData[left].front(),lNewSize,MPI_dataArray,left,0,MPI_COMM_WORLD,&status3);
-	           }
-	           MPI_Wait(&request0,&status0);
-	           MPI_Wait(&request1,&status1);
-	           if(left!=right){
-	           MPI_Wait(&request2,&status2);
-	           MPI_Wait(&request3,&status3); 
-	           }
-	           x++;
-	           MPI_Barrier(MPI_COMM_WORLD);
-	           cout<<endl<<endl;
-	           MPI_Barrier(MPI_COMM_WORLD);
-	           }
-	
+		MPI_Request request0;
+		MPI_Request request1;
+		MPI_Request request2;
+		MPI_Request request3;
+		MPI_Status  status0;
+		MPI_Status  status1;
+		MPI_Status  status2;
+		MPI_Status  status3;
+		int x=1; 
+		int right=myrank;
+		int left=myrank;
+		int lNewSize,rNewSize;
+		int rStart, lStart, rEnd, lEnd, rLength,lLength;
+		vector <vector <dataStruct>> newData(worldSize);
 
+		int sentTotal = 0;
+
+		while(x<=(worldSize)/2){
+
+			right++;
+
+			if(right>worldSize-1)
+				right=0;
+
+			left--;
+
+			if(left<0)
+				left=worldSize-1;
+
+			if(right==0){
+				rStart=0; 
+			}
+
+			else{
+				rStart=posIndex[right-1]+1;
+			}
+
+			if(right==worldSize-1)
+				rEnd=dataArray.size();
+
+			else 
+				rEnd=posIndex[right];
+
+			rLength=rEnd-rStart+1;
+
+			if(myrank==2){
+				cout<<"rEnd="<<rEnd<<" rStart="<<rStart<<endl;
+			}
+
+			cout<<myrank<<" sending "<<rLength<<" to "<<right<<endl;
+			sentTotal += rLength;
+
+			MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
+			MPI_Isend(&dataArray.at(rStart), rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);
+
+			if(left!=right){
+
+				if(left==0){
+					lStart=0; 
+
+				}else
+					lStart=posIndex[left-1]+1;
+
+				if(left==worldSize-1)
+					lEnd=dataArray.size();
+
+				else 
+					lEnd=posIndex[left];
+
+				lLength=lEnd-lStart+1; 
+
+				MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
+				MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);
+
+				sentTotal += lLength;
+
+			}
+
+			MPI_Recv(&rNewSize,1,MPI_INT,right,0,MPI_COMM_WORLD,&status0);
+
+			newData[right].reserve(rNewSize); 
+			newData[right].resize(rNewSize);
+
+			MPI_Recv(&newData[right].front(),rNewSize,MPI_dataArray,right,0,MPI_COMM_WORLD,&status1);
+
+			if(left!=right){
+
+				MPI_Recv(&lNewSize,1,MPI_INT,left,0,MPI_COMM_WORLD,&status2);
+
+				newData[left].reserve(lNewSize); 
+				newData[left].resize(lNewSize);
+
+				MPI_Recv(&newData[left].front(),lNewSize,MPI_dataArray,left,0,MPI_COMM_WORLD,&status3);
+
+			}
+
+			MPI_Wait(&request0,&status0);
+			MPI_Wait(&request1,&status1);
+
+			if(left!=right){
+				MPI_Wait(&request2,&status2);
+				MPI_Wait(&request3,&status3); 
+			}
+
+			x++;
 			MPI_Barrier(MPI_COMM_WORLD);
+			cout<<endl<<endl;
+			MPI_Barrier(MPI_COMM_WORLD);
+		}
+
+
+		// copy vector selection
+
+		int lastElement;
+
+		if (myrank == worldSize -1)
+		{
+			lastElement = dataArray.size();
+		}
+		else
+		{
+			lastElement = posIndex[myrank];
+		}
+
+		for (k = posIndex[myrank-1] + 1; k < lastElement; k++)
+		{
+			newData[myrank].push_back(dataArray[k]);
+			sentTotal++;
+		}
+
+
+
+		int totalSize = 0;
+		for (k = 0; k < worldSize; k++)
+		{
+
+			totalSize += newData[k].size();
+			std::cout << myrank << " " << k << " " << newData[k].size() << std::endl;
+		
+		}
+		std::cout << myrank << " total size sent: " << sentTotal << std::endl;
+	std::cout << myrank << " total size recv: " << totalSize << std::endl;
+
+
+		// clear old data
+
+		dataArray.clear();
+		dataArray.shrink_to_fit();
+
+		// make new vector from smaller ones
+
+		for (j = 0; j < worldSize; j++)
+		{
+			for (k = 0; k < newData[j].size(); k++)
+			{
+				dataArray.push_back(newData[j][k]);
+			}
+		}
+
+		// sort
+
+		sortPrep(dataArray, 0);
+
+
+		// write new files
+
+	/*	for (i = 0; i < 10; i++)
+		{
+			std::cout << "Node " << myrank << "Front of Array : " << dataArray[i].coordinates[0] << std::endl;
+		}
+
+		for (i = dataArray.size() - 10; i < dataArray.size(); i++)
+		{
+			std::cout << "Node " << myrank << "End of Array : " << dataArray[i].coordinates[0] << std::endl;
+		} */
+		std::string filepath = to_string(myrank) + "output.txt";
+		std::ofstream file(filepath);
+		int linecount = 0;
+
+		std::cout << "Size of dataArray: " << dataArray.size() << std::endl;
+
+
+	if (file.is_open())
+	{
+		while ( linecount < dataArray.size() )
+		{
+
+            file << std::setprecision(15) << dataArray[linecount].coordinates[0] << "\n";
+        //             std::cout << dataArray[linecount].id << " " << std::setprecision(15) << dataArray[linecount].coordinates[0] << " " << dataArray[linecount].coordinates[1] << " " << dataArray[linecount].coordinates[2] << "\n";
+			linecount++;
+		}
+
+		file.close();
+
+
+	}
+
+
+
+
+
+
+
+
+
+		MPI_Barrier(MPI_COMM_WORLD);
 	}
 
 	MPI_Type_free(&MPI_dataArray); // clean up
@@ -515,33 +733,33 @@ int main(int argc, char *argv[])
 
 void read_directory(const std::string& name, std::vector<int>& v)
 {
-    DIR* dirp = opendir(name.c_str());
-    std::vector<std::string> tmp;
-    struct dirent * dp;
-    int tempInt = 0;
-    while ((dp = readdir(dirp)) != NULL) {
-    	if (dp->d_name != "." || dp->d_name != "..")
-    	{
-        	tmp.push_back(dp->d_name);
-        }
-    }
-    for (int i = 0; i < tmp.size(); i++)
-    {
-    	if (tmp[i] == "." || tmp[i] == "..")
-    	{
-    		continue;
-    	}
-    	else
-    	{
-    		std::string temp;
-    		temp = tmp[i].substr(8, 5);
-    		tempInt = stoi(temp);
-    		v.push_back(tempInt);
-    	}
-    }
+	DIR* dirp = opendir(name.c_str());
+	std::vector<std::string> tmp;
+	struct dirent * dp;
+	int tempInt = 0;
+	while ((dp = readdir(dirp)) != NULL) {
+		if (dp->d_name != "." || dp->d_name != "..")
+		{
+			tmp.push_back(dp->d_name);
+		}
+	}
+	for (int i = 0; i < tmp.size(); i++)
+	{
+		if (tmp[i] == "." || tmp[i] == "..")
+		{
+			continue;
+		}
+		else
+		{
+			std::string temp;
+			temp = tmp[i].substr(8, 5);
+			tempInt = stoi(temp);
+			v.push_back(tempInt);
+		}
+	}
 
 
-    closedir(dirp);
+	closedir(dirp);
 }
 
 
