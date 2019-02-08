@@ -279,8 +279,17 @@ int main(int argc, char *argv[])
 
 		std::cout << "HEAD: " << posIndex.size() << std::endl;
 
+		for(i=0;i<globalPositionValueData.size();i++)
+		{
+			std::cout << "globalPositionValueData[" << i << "] = " << globalPositionValueData[i] << endl;
+		}
+		for(i=0 ; i<posIndex.size(); i++)
+		{
+			std::cout << "HEAD: " << posIndex[i] << " " << std::endl;
+			std::cout << "HEAD: " << dataArray[posIndex[i]].coordinates[0] << " " << std::endl;
+			std::cout << "HEAD: " << dataArray[posIndex[i]+1].coordinates[0] << " " << std::endl;
+		}
 		
-		std::cout << "HEAD: " << posIndex[0] << " " << posIndex[1] << " " << std::endl;
 
 		// Comm protocol
 
@@ -506,9 +515,17 @@ int main(int argc, char *argv[])
 
 		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
 
-		std::cout << myrank << " " << posIndex.size() << std::endl;
-
-		std::cout << myrank << " " << posIndex[0] << " " << posIndex[1] << " "<< posIndex[2] << " " << posIndex[3] << " "  << std::endl;
+	    for(i=0;i<globalPositionValueData.size();i++)
+		{
+			std::cout << "globalPositionValueData[" << i << "] = " << globalPositionValueData[i] << endl;
+		}
+				for(i=0 ; i<posIndex.size(); i++)
+		{
+			std::cout << myrank << ": " << posIndex[i] << " " << std::endl;
+			std::cout << myrank << ": " << dataArray[posIndex[i]].coordinates[0] << " " << std::endl;
+			std::cout << myrank << ": " << dataArray[posIndex[i]+1].coordinates[0] << " " << std::endl;
+		}
+		
 
 			/* Send size of posIndex */
 
