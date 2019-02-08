@@ -279,16 +279,17 @@ int main(int argc, char *argv[])
 
 		std::cout << "HEAD: " << posIndex.size() << std::endl;
 
-		for(i=0;i<globalPositionValueData.size();i++)
+		/*for(i=0;i<globalPositionValueData.size();i++)
 		{
 			std::cout << "globalPositionValueData[" << i << "] = " << globalPositionValueData[i] << endl;
-		}
+		}*/
 		for(i=0 ; i<posIndex.size(); i++)
 		{
-			std::cout << "HEAD: " << posIndex[i] << " " << std::endl;
-			std::cout << "HEAD: " << dataArray[posIndex[i]].coordinates[0] << " " << std::endl;
-			std::cout << "HEAD: " << dataArray[posIndex[i]+1].coordinates[0] << " " << std::endl;
+			std::cout << "HEAD: " << posIndex[i] << " ";
+		//	std::cout << "HEAD: " << dataArray[posIndex[i]].coordinates[0] << " " << std::endl;
+			//std::cout << "HEAD: " << dataArray[posIndex[i]+1].coordinates[0] << " " << std::endl;
 		}
+		std::cout << std::endl;
 		
 
 		// Comm protocol
@@ -297,6 +298,8 @@ int main(int argc, char *argv[])
 		// pass localPercentileList to globalPosition
 
 		MPI_Barrier(MPI_COMM_WORLD);
+
+		int sentTotal = 0;
 
 		MPI_Request request0;
 		MPI_Request request1;
@@ -337,6 +340,7 @@ int main(int argc, char *argv[])
 
 			MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
 			MPI_Isend(&dataArray.at(rStart), rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);
+			sentTotal += rLength;
 
 			if(left!=right){
 
@@ -352,6 +356,8 @@ int main(int argc, char *argv[])
 
 				MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
 				MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);	
+
+				sentTotal += lLength;
 
 			}
 
@@ -394,9 +400,10 @@ int main(int argc, char *argv[])
 
 		// copy vector selection
 
-		for (k = 0; k < posIndex[0]; k++)
+		for (k = 0; k < posIndex[0]+1; k++)
 		{
 			newData[myrank].push_back(dataArray[k]);
+			sentTotal++;
 		}
 
 		int totalSize = 0;
@@ -407,6 +414,7 @@ int main(int argc, char *argv[])
 			std::cout << myrank << " " << k << " " << newData[k].size() << std::endl;
 
 		}
+		std::cout << myrank << " total size sent: " << sentTotal << std::endl;
 
 		std::cout << myrank << " total size recv: " << totalSize << std::endl;
 
@@ -434,7 +442,7 @@ int main(int argc, char *argv[])
 		std::string filepath = to_string(myrank) + "output.txt";
 		std::ofstream file(filepath);
 
-		std::cout << "Size of dataArray: " << dataArray.size() << std::endl;
+		//std::cout << "Size of dataArray: " << dataArray.size() << std::endl;
 		// write new files
 
 		if (file.is_open())
@@ -491,7 +499,7 @@ int main(int argc, char *argv[])
 		vector <double> globalPositionValueData;
 		readFile(fileList[0], dataArray);
 		sortPrep(dataArray, 0);
-		cout<<"my rank is "<<myrank<<" vector value is "<<dataArray[0].coordinates[0]<<endl;
+	//	cout<<"my rank is "<<myrank<<" vector value is "<<dataArray[0].coordinates[0]<<endl;
 		vector <double> localPercentile(worldSize-1);
 		int numOfPercentiles = worldSize;
 		int arraySize = dataArray.size();
@@ -515,16 +523,17 @@ int main(int argc, char *argv[])
 
 		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
 
-	    for(i=0;i<globalPositionValueData.size();i++)
+	   /* for(i=0;i<globalPositionValueData.size();i++)
 		{
 			std::cout << "globalPositionValueData[" << i << "] = " << globalPositionValueData[i] << endl;
-		}
+		}*/
 				for(i=0 ; i<posIndex.size(); i++)
 		{
-			std::cout << myrank << ": " << posIndex[i] << " " << std::endl;
-			std::cout << myrank << ": " << dataArray[posIndex[i]].coordinates[0] << " " << std::endl;
-			std::cout << myrank << ": " << dataArray[posIndex[i]+1].coordinates[0] << " " << std::endl;
+			std::cout << myrank << ": " << posIndex[i] << " ";
+			//std::cout << myrank << ": " << dataArray[posIndex[i]].coordinates[0] << " " << std::endl;
+			//std::cout << myrank << ": " << dataArray[posIndex[i]+1].coordinates[0] << " " << std::endl;
 		}
+		std::cout << std::endl;
 		
 
 			/* Send size of posIndex */
@@ -574,7 +583,14 @@ int main(int argc, char *argv[])
 			else 
 				rEnd=posIndex[right];
 
-			rLength=rEnd-rStart+1;
+			if (right == 0)
+			{
+				rLength=rEnd-rStart;
+			}
+			else
+			{
+				rLength=rEnd-rStart+1;
+			}
 
 			if(myrank==2){
 				cout<<"rEnd="<<rEnd<<" rStart="<<rStart<<endl;
@@ -594,13 +610,22 @@ int main(int argc, char *argv[])
 				}else
 					lStart=posIndex[left-1]+1;
 
+
+
 				if(left==worldSize-1)
 					lEnd=dataArray.size();
 
 				else 
 					lEnd=posIndex[left];
 
-				lLength=lEnd-lStart+1; 
+				if (left == 0)
+				{
+					lLength=lEnd-lStart;
+				}
+				else
+				{
+					lLength=lEnd-lStart+1; 
+				}
 
 				MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
 				MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);
@@ -648,14 +673,14 @@ int main(int argc, char *argv[])
 
 		if (myrank == worldSize -1)
 		{
-			lastElement = dataArray.size();
+			lastElement = dataArray.size()-1;
 		}
 		else
 		{
 			lastElement = posIndex[myrank];
 		}
 
-		for (k = posIndex[myrank-1] + 1; k < lastElement; k++)
+		for (k = posIndex[myrank-1] + 1; k < lastElement+1; k++)
 		{
 			newData[myrank].push_back(dataArray[k]);
 			sentTotal++;
@@ -710,7 +735,7 @@ int main(int argc, char *argv[])
 		std::ofstream file(filepath);
 		int linecount = 0;
 
-		std::cout << "Size of dataArray: " << dataArray.size() << std::endl;
+		//std::cout << "Size of dataArray: " << dataArray.size() << std::endl;
 
 
 	if (file.is_open())
