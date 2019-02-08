@@ -317,6 +317,10 @@ int main(int argc, char *argv[])
 		int lNewSize,rNewSize;
 		int rStart, lStart, rEnd, lEnd, rLength,lLength;
 		vector <vector <dataStruct>> newData(worldSize);
+                for(k=0;k<dataArray.size();k++){
+                if(dataArray[k].coordinates[0]==.605941702998731)
+                cout<<"I am node "<<myrank<<"and the odd index is at "<<k<<endl;
+}
 		while(x<=(worldSize)/2){
 
 			right++;
@@ -330,14 +334,14 @@ int main(int argc, char *argv[])
 			rStart=posIndex[right-1]+1;
 
 			if(right==worldSize-1)
-				rEnd=dataArray.size();
+				rEnd=dataArray.size()-1;
 
 			else 
 				rEnd=posIndex[right];
 
 			rLength=rEnd-rStart+1; 
 
-			cout<<myrank<<" sending "<<rLength<<" to "<<right << " " << dataArray.at(rStart).coordinates[0] << " " << dataArray.at(rEnd).coordinates[0] <<endl;
+		       cout<<myrank<<" sending "<<rLength<<" to "<<right << " " << rStart << " " <<rEnd <<endl;
 
 			MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
 			MPI_Isend(&dataArray.at(rStart), rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);
@@ -348,7 +352,7 @@ int main(int argc, char *argv[])
 				lStart=posIndex[left-1]+1;
 
 				if(left==worldSize-1)
-					lEnd=dataArray.size();
+					lEnd=dataArray.size()-1;
 
 				else 
 					lEnd=posIndex[left];
@@ -357,6 +361,7 @@ int main(int argc, char *argv[])
 
 				MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
 				MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);	
+			       cout<<myrank<<" sending "<<lLength<<" to "<<left << " " << lStart << " " <<lEnd <<endl;
 
 				sentTotal += lLength;
 
@@ -559,6 +564,10 @@ int main(int argc, char *argv[])
 
 		int sentTotal = 0;
 
+                for(k=0;k<dataArray.size();k++){
+                if(dataArray[k].coordinates[0]==.693684452093443)
+                cout<<"I am node "<<myrank<<" and the odd index is at "<<k<<endl;
+}
 		while(x<=(worldSize)/2){
 
 			right++;
@@ -580,14 +589,14 @@ int main(int argc, char *argv[])
 			}
 
 			if(right==worldSize-1)
-				rEnd=dataArray.size();
+				rEnd=dataArray.size()-1;
 
 			else 
 				rEnd=posIndex[right];
 
 			if (right == 0)
 			{
-				rLength=rEnd-rStart;
+				rLength=rEnd-rStart+1;
 			}
 			else
 			{
@@ -595,10 +604,9 @@ int main(int argc, char *argv[])
 			}
 
 			if(myrank==2){
-				cout<<"rEnd="<<rEnd<<" rStart="<<rStart<<endl;
+			cout<<myrank<<" sending "<<rLength<<" to "<<right << " " << rStart << " " <<rEnd <<endl;
 			}
 
-			cout<<myrank<<" sending "<<rLength<<" to "<<right << " " << dataArray.at(rStart).coordinates[0] << " " << dataArray.at(rEnd-1).coordinates[0] <<endl;
 
 			sentTotal += rLength;
 
@@ -616,14 +624,14 @@ int main(int argc, char *argv[])
 
 
 				if(left==worldSize-1)
-					lEnd=dataArray.size();
+					lEnd=dataArray.size()-1;
 
 				else 
 					lEnd=posIndex[left];
 
 				if (left == 0)
 				{
-					lLength=lEnd-lStart;
+					lLength=lEnd-lStart+1;
 				}
 				else
 				{
@@ -632,6 +640,7 @@ int main(int argc, char *argv[])
 
 				MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
 				MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);
+			       cout<<myrank<<" sending "<<lLength<<" to "<<left << " " << lStart << " " <<lEnd <<endl;
 
 				sentTotal += lLength;
 
