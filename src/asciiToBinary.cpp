@@ -68,16 +68,18 @@ int main()
     std::vector<dataStruct> dataArray;
     std::vector<std::string> dirListing;
     std::vector<std::string> dataFileList;
-    std::string path = "../datafiles/ascii/input/";
-    std::string outpath = "../datafiles/binary/output/";
+    std::string path = "../../coms7900/";
+    std::string outpath = "../../fullsizedata/";
     std::string filepath; // reusable string to specify full string path
     std::cout << "dataArray size: " << dataArray.size() << std::endl;
     read_directory(path, dirListing);
 
+    std::cout << "Finished reading directory." << std::endl;
+
     fileCount = 0;
     for (i = 0; i < dirListing.size(); i++)
     {
-    	if (dirListing[i] == ".." || dirListing[i] == ".")
+    	if (dirListing[i] == ".." || dirListing[i] == "." || dirListing[i] == "binary")
     	{
     		continue;
 
@@ -90,20 +92,31 @@ int main()
     	
     }
 
-    for (i = 0; i < fileCount; i++)
+    std::cout << "Finished parsing file list" << std::endl;
+
+    for (i = 0; i < 4; i++)
     {
         filepath = path + dataFileList[i];
+
+        std::cout << "Reading: " << filepath << std::endl;
 
         std::ifstream inFile(filepath);
         if ( inFile.is_open() )
         {
-            while ( !inFile.eof() )
+            int lineCount = 0;
+            while ( lineCount < 20000000 )
+              //  while (lineCount < 1000000)
             {
                 inFile >> lineData.id;
                 inFile >> lineData.col1;
                 inFile >> lineData.col2;
                 inFile >> lineData.col3;
                 dataArray.push_back(lineData);
+                lineCount++;
+                if(lineCount % 1000000 == 0){
+                std::cout << lineCount << std::endl;
+               // lineCount = lineCount-1000000;
+                }
             }
             inFile.close();
             std::cout << "File: " << filepath << " lines: " << dataArray.size() << std::endl;
@@ -119,6 +132,7 @@ int main()
         }
         filepath = outpath + dataFileList[i].substr(0, dataFileList[i].size()-4) + ".bin";
         std::ofstream outFile(filepath, std::ios::binary | std::ios::out);
+        std::cout << "Writing new file: " << filepath << std::endl;
         if (outFile.is_open())
         {
 
@@ -137,6 +151,8 @@ int main()
             std::cout << "\nOutput file wasn't opened properly.\n";
             exit(1);
         }
+
+        std::cout << "Done writing file." << std::endl;
 
         dataArray.clear();
 
