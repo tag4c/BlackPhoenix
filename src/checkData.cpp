@@ -3,7 +3,7 @@
 #include <string>
 using namespace std;
 
-int main(int argc, char *argv[]){
+/*int main(int argc, char *argv[]){
 	string name=argv[1];
 	ifstream inFile;
 	int index;
@@ -21,4 +21,4 @@ int main(int argc, char *argv[]){
 	}
 	
 return 0;
-}
+}*/
