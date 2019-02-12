@@ -17,9 +17,23 @@ Required Header Files
 #include <vector>
 #include <dirent.h>
 #include <cmath>
+#include <iostream>
 #include <mpi.h>
+
+#ifndef DATA_H
+#define DATA_H
+
+struct dataStruct
+{
+	int id;  // Line Number
+	double coordinates[3];     // column 1
+};
+#endif
+
+
 
 void decodeFilesToRead(int &fileEachNodeSize, std::vector<int> &localFileList, std::vector <std::string> &fileList);
 void recvFilesToRead(int &fileNodeEachSize, MPI_Status &status, std::vector<int> &localFileList);
 void sendLocalPercentile(int &worldSize, std::vector <double> &localPercentile);
 void recvGlobalPositionValue(std::vector <double> &globalPositionValueData);
+void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &myrank, std::vector <int> &posIndex);

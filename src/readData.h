@@ -37,19 +37,13 @@ struct dataStruct
 
 #endif
 
-
-//vector<struct > sdisd
-//sdisd[8].coordinates[columnTOsORT];
-//{
-	
-//};>
 /*
-
+==================================================
 
 Function Declarations
 
 ==================================================
 */
 
-void readFile(std::string &filePath, std::vector<dataStruct> &dataArray);
+void readFile(std::string &filePath, std::vector<dataStruct> &dataArray, int &linesToRead);
 

@@ -11,9 +11,15 @@ Author:  Thomas Goff MTSU <tag4c@mtmail.mtsu.edu>
 Required Header Files
 
 ==================================================
+
 */
 
+
+
+
 #include "headNodeMethods.h"
+
+using namespace std;
 
 void decodeFilesToRead(int fileEachNodeSize, std::vector <std::vector<int>> &fileEachNode, std::vector <std::string> &fileList)
 {
@@ -142,6 +148,160 @@ void sendFilesToRead(int &worldSize, std::vector <std::vector<int>>  &fileEachNo
 		fileEachNodeSize = fileEachNode[0].size();
 
 
+}
+
+
+void recvLocalPercentile(std::vector <double> &localPercentile, int &worldSize, MPI_Status &status, std::vector <std::vector <double>> &localPercentileList)
+{
+	int i;
+	for (i = 1; i < worldSize; i++)
+		{
+			MPI_Recv(&localPercentile.front(), worldSize -1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, &status);//, &request);
+			localPercentileList.push_back(localPercentile);
+
+		}
+}
+
+void sendGlobalPositionValue(int &arraySize, std::vector <double> &globalPositionValueData)
+{
+		MPI_Bcast(&arraySize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		MPI_Bcast(&globalPositionValueData.front(), arraySize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+}
+
+void swapDataHead(int &worldSize, std::vector <dataStruct> &dataArray, int &myrank, std::vector <int> &posIndex)
+{
+	int blockSize[2] = { 1, 3 };
+	MPI_Datatype MPI_dataStruct[2] = { MPI_INT, MPI_DOUBLE };
+	MPI_Datatype MPI_dataArray;
+	MPI_Aint offsets[2];
+
+	offsets[0] = offsetof(dataStruct, id);
+	offsets[1] = offsetof(dataStruct, coordinates);
+
+	MPI_Type_create_struct(2, blockSize, offsets, MPI_dataStruct, &MPI_dataArray);
+
+	MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
+		int i, j, k;
+		MPI_Request request0;
+		MPI_Request request1;
+		MPI_Request request2;
+		MPI_Request request3;
+
+		MPI_Status  status0;
+		MPI_Status  status1;
+		MPI_Status  status2;
+		MPI_Status  status3;
+		int x=1; 
+		int right=myrank;
+		int left=myrank;
+		int lNewSize,rNewSize;
+		int rStart, lStart, rEnd, lEnd, rLength,lLength;
+		vector <vector <dataStruct>> newData(worldSize);
+       
+		while(x<=(worldSize)/2){
+
+			right++;
+			if(right>worldSize-1)
+				right=0;
+			left--;
+
+			if(left<0)
+				left=worldSize-1;
+
+			rStart=posIndex[right-1]+1;
+
+			if(right==worldSize-1)
+				rEnd=dataArray.size()-1;
+
+			else 
+				rEnd=posIndex[right];
+
+			rLength=rEnd-rStart+1; 
+
+		       cout<<myrank<<" sending "<<rLength<<" to "<<right << " " << rStart << " " <<rEnd <<endl;
+
+			MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
+			MPI_Isend(&dataArray.at(rStart), rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);
+
+			if(left!=right){
+
+				lStart=posIndex[left-1]+1;
+
+				if(left==worldSize-1)
+					lEnd=dataArray.size()-1;
+
+				else 
+					lEnd=posIndex[left];
+
+				lLength=lEnd-lStart+1; 
+
+				MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
+				MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);	
+			       cout<<myrank<<" sending "<<lLength<<" to "<<left << " " << lStart << " " <<lEnd <<endl;
+
+			
+
+			}
+
+			MPI_Recv(&rNewSize,1,MPI_INT,right,0,MPI_COMM_WORLD,&status0);
+
+			newData[right].reserve(rNewSize); 
+			newData[right].resize(rNewSize);
+
+			MPI_Recv(&newData[right].front(),rNewSize,MPI_dataArray,right,0,MPI_COMM_WORLD,&status1);
+
+			if(left!=right){
+
+				MPI_Recv(&lNewSize,1,MPI_INT,left,0,MPI_COMM_WORLD,&status2);
+
+				newData[left].reserve(lNewSize); 
+				newData[left].resize(lNewSize);
+
+				MPI_Recv(&newData[left].front(),lNewSize,MPI_dataArray,left,0,MPI_COMM_WORLD,&status3);
+
+			}
+
+			MPI_Wait(&request0,&status0);
+			MPI_Wait(&request1,&status1);
+
+			if(left!=right){
+
+				MPI_Wait(&request2,&status2);
+				MPI_Wait(&request3,&status3); 
+
+			}
+
+			x++;
+			MPI_Barrier(MPI_COMM_WORLD);
+			cout<<endl<<endl;
+			MPI_Barrier(MPI_COMM_WORLD);
+
+		}
+
+
+
+		// copy vector selection
+
+		for (k = 0; k < posIndex[0]+1; k++)
+		{
+			newData[myrank].push_back(dataArray[k]);
+		
+		}
+
+		// clear old data
+
+		dataArray.clear();
+		dataArray.shrink_to_fit();
+
+		// make new vector from smaller ones
+
+		for (j = 0; j < worldSize; j++)
+		{
+			for (k = 0; k < newData[j].size(); k++)
+			{
+				dataArray.push_back(newData[j][k]);
+			}
+		}
 }
 
 		
