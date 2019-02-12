@@ -32,9 +32,9 @@ void readFile(std::string &filepath, std::vector<dataStruct> &dataArray, int &li
 	//i = 0;
 	int lineCount = 0;
 	
-	dataStruct lineData;
 	std::ifstream file (filepath.c_str());
 
+		dataStruct lineData;
 	//std::string buff;
 	//std::string index;
 	//double col1, col2, col3;
@@ -86,14 +86,16 @@ void readFile(std::string &filepath, std::vector<dataStruct> &dataArray, int &li
     			file.read((char*)&lineData.coordinates[1], 8);
     
     			file.read((char*)&lineData.coordinates[2], 8);
+			std::cout << lineData.coordinates[0] << std::endl;
     
             	dataArray.push_back(lineData);
  				lineCount++;
+				
 
 			}
 
 			file.close();
-      			dataArray.pop_back();
+//      			dataArray.pop_back();
 		}
     	else
 		{

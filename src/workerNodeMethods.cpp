@@ -21,8 +21,9 @@ using namespace std;
 void decodeFilesToRead(int &fileEachNodeSize, std::vector<int> &localFileList, std::vector <std::string> &fileList)
 {
 	int i, j, k;
-	std::string fileName = "datafiles/binary/output/datafile";
+//	std::string fileName = "/data/shared/shared/coms7900-data/BlackPhoenixBinary/datafile";
 
+	std::string fileName = "datafiles/binary/output/datafile";
 		for (i = 0; i < fileEachNodeSize; i++)
 		{
 			std::string temp = std::to_string(localFileList[i]);

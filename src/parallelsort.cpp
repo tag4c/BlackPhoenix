@@ -130,8 +130,9 @@ int main(int argc, char *argv[])
 		MPI_Request request;
 		MPI_Status status;
 		int fileEachNodeSize;
-		std::string dirpath = "datafiles/binary/output/";
+		//std::string dirpath = "/data/shared/shared/coms7900-data/BlackPhoenixBinary/";
 
+		std::string dirpath = "datafiles/binary/output/";
 		std::vector <std::vector<int>> fileEachNode;
 
 		assignFilesToRead(dirpath, worldSize, fileEachNode); // determine number of files each node gets to read.
