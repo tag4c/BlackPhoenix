@@ -1,2 +1,4 @@
 *.[oa]
 *.bin
+src/convertToAscii
+src/convertToBinary
