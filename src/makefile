@@ -18,5 +18,3 @@ clean:
 	rm -rf *.o
 	rm -rf convertToBinary
 	rm -rf convertToAscii
-	rm -rf ../datafiles/binary/output/*
-	rm -rf ../datafiles/ascii/output/*
