@@ -25,14 +25,14 @@ Required Header Files
 
 struct dataStruct
 {
-	int id;  // Line Number
+	long long int id;  // Line Number
 	double coordinates[3];     // column 1
 };
 #endif
 
 
 
-void decodeFilesToRead(int &fileEachNodeSize, std::vector<int> &localFileList, std::vector <std::string> &fileList);
+void decodeFilesToRead(int &fileEachNodeSize, std::vector<int> &localFileList, std::vector <std::string> &fileList, std::string path);
 void recvFilesToRead(int &fileNodeEachSize, MPI_Status &status, std::vector<int> &localFileList);
 void sendLocalPercentile(int &worldSize, std::vector <double> &localPercentile);
 void recvGlobalPositionValue(std::vector <double> &globalPositionValueData);

@@ -25,7 +25,7 @@ Required Header Files
 
 struct dataStruct
 {
-	int id;  // Line Number
+	long long int id;  // Line Number
 	double coordinates[3];     // column 1
 };
 #endif
@@ -35,7 +35,7 @@ struct dataStruct
 
 void assignFilesToRead(std::string &dirpath, int worldSize, std::vector <std::vector<int>> &fileEachNode);
 void read_directory(const std::string& name, std::vector<int>& v);
-void decodeFilesToRead(int fileEachNodeSize, std::vector <std::vector<int>> &fileEachNode, std::vector <std::string> &fileList);
+void decodeFilesToRead(int fileEachNodeSize, std::vector <std::vector<int>> &fileEachNode, std::vector <std::string> &fileList, std::string path);
 void sendFilesToRead(int &worldSize, std::vector <std::vector<int>>  &fileEachNode, MPI_Request &request, int &fileEachNodeSize);
 void recvLocalPercentile(std::vector <double> &localPercentile, int &worldSize, MPI_Status &status, std::vector <std::vector <double>> &localPercentileList);
 void sendGlobalPositionValue(int &arraySize, std::vector <double> &globalPositionValueData);

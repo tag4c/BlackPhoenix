@@ -16,7 +16,7 @@
 
 struct dataStruct
 {
-	int id;  // Line Number
+	long long int id;  // Line Number
 	double coordinates[3];     // column 1
 };
 

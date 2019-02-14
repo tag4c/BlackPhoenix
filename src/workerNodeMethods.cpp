@@ -18,12 +18,12 @@ Required Header Files
 using namespace std;
 
 
-void decodeFilesToRead(int &fileEachNodeSize, std::vector<int> &localFileList, std::vector <std::string> &fileList)
+void decodeFilesToRead(int &fileEachNodeSize, std::vector<int> &localFileList, std::vector <std::string> &fileList, std::string path)
 {
 	int i, j, k;
 //	std::string fileName = "/data/shared/shared/coms7900-data/BlackPhoenixBinary/datafile";
 
-	std::string fileName = "datafiles/binary/output/datafile";
+		std::string fileName = path + "datafile";
 		for (i = 0; i < fileEachNodeSize; i++)
 		{
 			std::string temp = std::to_string(localFileList[i]);
@@ -67,7 +67,7 @@ void recvGlobalPositionValue(std::vector <double> &globalPositionValueData)
 void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &myrank, std::vector <int> &posIndex)
 {
 		int blockSize[2] = { 1, 3 };
-	MPI_Datatype MPI_dataStruct[2] = { MPI_INT, MPI_DOUBLE };
+	MPI_Datatype MPI_dataStruct[2] = { MPI_LONG_LONG_INT, MPI_DOUBLE };
 	MPI_Datatype MPI_dataArray;
 	MPI_Aint offsets[2];
 
@@ -132,7 +132,7 @@ void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &my
 			}
 
 			if(myrank==2){
-			cout<<myrank<<" sending "<<rLength<<" to "<<right << " " << rStart << " " <<rEnd <<endl;
+//			cout<<myrank<<" sending "<<rLength<<" to "<<right << " " << rStart << " " <<rEnd <<endl;
 			}
 
 			MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
@@ -165,7 +165,7 @@ void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &my
 
 				MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
 				MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);
-			       cout<<myrank<<" sending "<<lLength<<" to "<<left << " " << lStart << " " <<lEnd <<endl;
+//			       cout<<myrank<<" sending "<<lLength<<" to "<<left << " " << lStart << " " <<lEnd <<endl;
 
 			}
 
@@ -197,7 +197,7 @@ void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &my
 
 			x++;
 			MPI_Barrier(MPI_COMM_WORLD);
-			cout<<endl<<endl;
+//			cout<<endl<<endl;
 			MPI_Barrier(MPI_COMM_WORLD);
 		}
 

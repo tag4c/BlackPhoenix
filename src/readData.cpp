@@ -47,7 +47,7 @@ void readFile(std::string &filepath, std::vector<dataStruct> &dataArray, int &li
 			while ( file )
 			{
 
-				file.read((char*)&lineData.id, 4);
+				file.read((char*)&lineData.id, 8);
     			file.read((char*)&lineData.coordinates[0], 8);
     		//lineData.coordinates.push_back(col1);
     			file.read((char*)&lineData.coordinates[1], 8);
@@ -86,7 +86,7 @@ void readFile(std::string &filepath, std::vector<dataStruct> &dataArray, int &li
     			file.read((char*)&lineData.coordinates[1], 8);
     
     			file.read((char*)&lineData.coordinates[2], 8);
-			std::cout << lineData.coordinates[0] << std::endl;
+		//	std::cout << lineData.coordinates[0] << std::endl;
     
             	dataArray.push_back(lineData);
  				lineCount++;

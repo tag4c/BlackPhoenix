@@ -1,5 +1,0 @@
-#$ -N Sort
-#$-pe mpi 16
-#$-q amd.q
-mpirun -np $NSLOTS $HOME/BlackPhoenix/parallelsort 10000000
- 
