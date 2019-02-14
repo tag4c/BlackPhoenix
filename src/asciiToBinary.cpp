@@ -79,7 +79,7 @@ int main()
     fileCount = 0;
     for (i = 0; i < dirListing.size(); i++)
     {
-    	if (dirListing[i] == ".." || dirListing[i] == "." || dirListing[i] == "binary")
+    	if (dirListing[i] == ".." || dirListing[i] == "." || dirListing[i] == "binary" || dirListing[i] == "BlackPhoenixBinary")
     	{
     		continue;
 
