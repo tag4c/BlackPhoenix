@@ -30,7 +30,7 @@ Header Guards
 
 struct dataStruct
 {
-	int id;  // Line Number
+	long long int id;  // Line Number
 	double col1;     // column 1
 	double col2;
 	double col3;
@@ -69,7 +69,7 @@ int main()
     std::vector<std::string> dirListing;
     std::vector<std::string> dataFileList;
     std::string path = "../../coms7900/";
-    std::string outpath = "../../fullsizedata/";
+    std::string outpath = "/data/shared/shared/coms7900-data/BlackPhoenixBinary/";
     std::string filepath; // reusable string to specify full string path
     std::cout << "dataArray size: " << dataArray.size() << std::endl;
     read_directory(path, dirListing);
@@ -94,7 +94,7 @@ int main()
 
     std::cout << "Finished parsing file list" << std::endl;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < 256; i++)
     {
         filepath = path + dataFileList[i];
 
@@ -113,10 +113,10 @@ int main()
                 inFile >> lineData.col3;
                 dataArray.push_back(lineData);
                 lineCount++;
-                if(lineCount % 1000000 == 0){
-                std::cout << lineCount << std::endl;
+    //            if(lineCount % 1000000 == 0){
+     //           std::cout << lineCount << std::endl;
                // lineCount = lineCount-1000000;
-                }
+      //          }
             }
             inFile.close();
             std::cout << "File: " << filepath << " lines: " << dataArray.size() << std::endl;
@@ -136,9 +136,9 @@ int main()
         if (outFile.is_open())
         {
 
-            for (j = 0; j < dataArray.size()-1; j++)
+            for (j = 0; j < dataArray.size(); j++)
             {
-                outFile.write((char*)&dataArray[j].id, 4);
+                outFile.write((char*)&dataArray[j].id, 8);
                 outFile.write((char*)&dataArray[j].col1, 8);
                 outFile.write((char*)&dataArray[j].col2, 8);
                 outFile.write((char*)&dataArray[j].col3, 8);

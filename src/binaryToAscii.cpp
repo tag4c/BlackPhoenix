@@ -27,7 +27,7 @@ Header Guards
 
 struct dataStruct
 {
-	int id;  // Line Number
+	long long int id;  // Line Number
 	double col1;     // column 1
 	double col2;
 	double col3;
@@ -53,31 +53,33 @@ int main()
     std::vector<dataStruct> dataArray;
 
 
-    std::ifstream inFile("../datafiles/binary/output/datafile00006.bin", std::ios::binary | std::ios::in);
+    std::ifstream inFile("datafile00407.bin", std::ios::binary | std::ios::in);
     
 
     linecount = 0;
 
     if (inFile.is_open())
     {
-    	while ( inFile )
+    //	while ( inFile )
+    	while (linecount < 20000000)
     	{
-    		inFile.read((char*)&lineData.id, 4);
+    		inFile.read((char*)&lineData.id, 8);
     		inFile.read((char*)&lineData.col1, 8);
     		inFile.read((char*)&lineData.col2, 8);
     		inFile.read((char*)&lineData.col3, 8);
             dataArray.push_back(lineData);
+		linecount++;
 
 		}
 		inFile.close();
 
-		std::ofstream outFile("../datafiles/output/tag4ctest.txt");
+		std::ofstream outFile("tag4ctest.txt");
 		if (outFile.is_open())
 		{
 
-			for (i = 0; i < dataArray.size()-1; i++)
+			for (i = 0; i < dataArray.size(); i++)
 			{
-				outFile << dataArray[i].id << " " << dataArray[i].col1 << " " << dataArray[i].col2 << " " << dataArray[i].col3 << std::endl;
+				outFile << std::setprecision(16) << dataArray[i].id << " " << std::setprecision(16)<< dataArray[i].col1 << " " << std::setprecision(16)<< dataArray[i].col2 << " " << std::setprecision(16)<<  dataArray[i].col3 << std::endl;
 				//id = dataArray[i].id;
 				/*outFile.write((char*)&dataArray[i].id, 4);
 				outFile.write((char*)&dataArray[i].col1, 8);
