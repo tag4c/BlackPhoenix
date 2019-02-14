@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <unistd.h>
 #include "mpi.h"
+#include <time.h>
 
 // Common library includes for everyone...
 
@@ -69,7 +70,7 @@ long integer   |   double   |   double  |   double
 
 struct dataStruct
 {
-	int id;  // Line Number
+	long long int id;  // Line Number
 	double coordinates[3];     // column 1
 };
 #endif
@@ -85,10 +86,13 @@ int main(int argc, char *argv[])
 {
 	/* Variable Declarations */
 	int i,j, k;
+	char b;
 	int maxFiles;
 	int maxNodes;
 	int columnToSort = 0;
 	int linesToRead = 0;
+	std::string path;
+        clock_t start=clock();
 
 	/* Variable initialization */
 	//maxFiles = atoi(argv[1]);  // First command line argument for Number of files to read
@@ -97,6 +101,7 @@ int main(int argc, char *argv[])
 	if (argc > 1)
 	{
 		linesToRead = atoi(argv[1]);
+		path = argv[2];
 	}
 
 	/* MPI Setup */
@@ -112,7 +117,7 @@ int main(int argc, char *argv[])
 	/* This might need to be in communication.cpp, I don't think it's needed in the main driver. */
 	/* ========================================*/
 	int blockSize[2] = { 1, 3 };
-	MPI_Datatype MPI_dataStruct[2] = { MPI_INT, MPI_DOUBLE };
+	MPI_Datatype MPI_dataStruct[2] = { MPI_LONG_LONG_INT, MPI_DOUBLE };
 	MPI_Datatype MPI_dataArray;
 	MPI_Aint offsets[2];
 
@@ -126,13 +131,18 @@ int main(int argc, char *argv[])
 	/* Scheduler Node (HEAD NODE) */
 	if (myrank == 0)
 	{
+        	clock_t  t1,t2;
+       		t1=start;
 		/* Have this node read all data in and send it out first? */
 		MPI_Request request;
 		MPI_Status status;
 		int fileEachNodeSize;
+                ofstream timeData;
+                timeData.open("timing.txt");
 		//std::string dirpath = "/data/shared/shared/coms7900-data/BlackPhoenixBinary/";
 
-		std::string dirpath = "datafiles/binary/output/";
+		//std::string dirpath = "/home/dtl2d/BlackPhoenix/datafiles/binary/output/";
+		std::string dirpath = path;
 		std::vector <std::vector<int>> fileEachNode;
 
 		assignFilesToRead(dirpath, worldSize, fileEachNode); // determine number of files each node gets to read.
@@ -142,13 +152,19 @@ int main(int argc, char *argv[])
 		std::vector <std::string> fileList(fileEachNodeSize);
 
 
-		decodeFilesToRead(fileEachNodeSize, fileEachNode, fileList);
+		decodeFilesToRead(fileEachNodeSize, fileEachNode, fileList, path);
 
 		std::vector <dataStruct> dataArray;
 		
 		readFile(fileList[0], dataArray, linesToRead);
+                t2=clock()-t1;
+                t1=t2;
+                timeData<<"time to read files from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
 		sortPrep(dataArray, columnToSort);
+                t2=clock()-t1;
+                t1=t2;
+                timeData<<"time for local sort from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
 
 		vector <double> globalPositionValueData;
@@ -184,12 +200,21 @@ int main(int argc, char *argv[])
 		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);		
 
 		MPI_Barrier(MPI_COMM_WORLD);
+                t2=clock()-t1;
+                t1=t2;
+                timeData<<"time to find where data should go:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
 
 
 		swapDataHead(worldSize, dataArray, myrank, posIndex);
+                t2=clock()-t1;
+                t1=t2;
+                timeData<<"time to send data:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
 		sortPrep(dataArray, columnToSort);
+                t2=clock()-t1;
+                t1=t2;
+                timeData<<"final sort:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
 		int linecount = 0;
 		std::string filepath = to_string(myrank) + "output.txt";
@@ -214,6 +239,9 @@ int main(int argc, char *argv[])
 	}
 
 		MPI_Barrier(MPI_COMM_WORLD);
+                t2=clock()-start;
+                timeData<<"final time from head node: "<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
+
 	}
 	/* Slave nodes (All others) */
 	else
@@ -230,7 +258,7 @@ int main(int argc, char *argv[])
 		std::vector <std::string> fileList(fileNodeEachSize);
 
 
-		decodeFilesToRead(fileNodeEachSize, localFileList, fileList);
+		decodeFilesToRead(fileNodeEachSize, localFileList, fileList, path);
 
 		std::vector <dataStruct> dataArray;
 		vector <double> globalPositionValueData;
@@ -292,7 +320,6 @@ int main(int argc, char *argv[])
 
 	MPI_Type_free(&MPI_dataArray); // clean up
 	MPI_Finalize(); // clean up MPI usage
-
 
 	return 0;
 
