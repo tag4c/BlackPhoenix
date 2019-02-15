@@ -11,28 +11,29 @@
 #define Int int
 #define Double double
 
-void findPercentile(std::vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, std::vector<Double>& percentiles, Double& numDataEachPart)
-
+void findPercentile(std::vector< std::vector<dataStruct> >& dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, std::vector< std::vector<Double> >& percentiles, Double& numDataEachPart)
 {
-  Int position, i;
-  // position : The positon of dataArray
-  // i        : For the loop index
-  Double ratio;
-  // ratio    : The ratio to calculate the percentile
-
-  // PercentEachPart    : The percent of each part
-  // numDataCurrentPart : The number of dataArray of each part
-  Double percentEachPart = Double(1.0) / numPercentile;
-  numDataEachPart = percentEachPart * dataNum;
-
-  // Calculate the percentiles
-  for(i=1;i<numPercentile;i++)
-    {
-      Double numDataCurrentPart = numDataEachPart * i;
-      position = floor(numDataCurrentPart);
-      ratio = numDataCurrentPart - position;
-      percentiles[i-1] = dataArray[position].coordinates[columnToSort] * (1-ratio) + dataArray[position].coordinates[columnToSort] * ratio;
-    }      
-
+  Int fileOnNode = dataArray.size();
+  for(Int j=0;j<fileOnNode;j++){
+    Int position, i;
+    // position : The positon of dataArray
+    // i        : For the loop index
+    Double ratio;
+    // ratio    : The ratio to calculate the percentile
+    
+    // PercentEachPart    : The percent of each part
+    // numDataCurrentPart : The number of dataArray of each part
+    Double percentEachPart = Double(1.0) / numPercentile;
+    numDataEachPart = percentEachPart * dataNum;
+    
+    // Calculate the percentiles
+    for(i=1;i<numPercentile;i++)
+      {
+	Double numDataCurrentPart = numDataEachPart * i;
+	position = floor(numDataCurrentPart);
+	ratio = numDataCurrentPart - position;
+	percentiles[j][i-1] = dataArray[j][position].coordinates[columnToSort] * (1-ratio) + dataArray[j][position].coordinates[columnToSort] * ratio;
+      }//end i      
+  }//end j
 }
    

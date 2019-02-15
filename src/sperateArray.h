@@ -21,5 +21,5 @@ struct dataStruct
 };
 #endif
 
-void sperateArray(std::vector<dataStruct>& dataArray, int& dataNum, std::vector<double>& globalPos, double numDataEachPart, int& columnToSort, std::vector<int>& posIndex);
+void sperateArray(std::vector< std::vector<dataStruct> >& dataArray, int& dataNum, std::vector<double>& globalPos, double numDataEachPart, int& columnToSort, std::vector< std::vector<int> >& posIndex);
   

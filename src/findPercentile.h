@@ -23,4 +23,4 @@ struct dataStruct
 
 #endif
 
-void findPercentile(std::vector<dataStruct>& dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, std::vector<Double>& percentiles, Double& numDataEachPart);
+void findPercentile(std::vector< std::vector<dataStruct> >& dataArray, Int& numPercentile, Int& dataNum, Int& columnToSort, std::vector< std::vector<Double> >& percentiles, Double& numDataEachPart);
