@@ -68,7 +68,7 @@ int main()
     std::vector<dataStruct> dataArray;
     std::vector<std::string> dirListing;
     std::vector<std::string> dataFileList;
-    std::string path = "../../coms7900/";
+    std::string path = "../../localstorage/public/coms7900-data/";
     std::string outpath = "";
     std::string filepath; // reusable string to specify full string path
    // std::cout << "dataArray size: " << dataArray.size() << std::endl;
@@ -104,10 +104,11 @@ int main()
         if ( inFile.is_open() )
         {
             int lineCount = 0;
+            std::string temp;
             while ( lineCount < 20000000 )
               //  while (lineCount < 1000000)
             {
-                inFile >> lineData.id;
+                inFile >> temp;
 		lineData.id = lineCount;
                 inFile >> lineData.col1;
                 inFile >> lineData.col2;
