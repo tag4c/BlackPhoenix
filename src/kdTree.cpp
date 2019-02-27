@@ -78,3 +78,33 @@ kdTree(data, id*2, left, mid, nodes);
 kdTree(data, id*2+1,mid+1, right, nodes);
 }
  
+void kdTree_search(node* nodes, double radius, double* sp, int nodeNum)
+{
+  double spToCent = dis(sp,nodes[nodeNum].cent);
+  double maxNodeLen = nodes[nodeNum].length;
+  if(spToCent < radius + maxNodeLen){
+    int subNodeNum1 = nodeNum*2;
+    if(subNodeNum1 > maxNode){
+      exit(1);
+    }
+    kdTree_search(nodes,radius,sp,subNodeNum1);
+    int subNodeNum2 = nodeNum*2+1;
+    if(subNodeNum2 > maxNode){
+      exit(1);
+    }
+    kdTree_search(nodes,radius,sp,subNodeNum2);
+  }
+  else{
+    return node[id];
+  }
+}  
+
+double dis(double* p1, double* p2)
+{ 
+  double distance = 0;
+  for(int i=0;i<3;i++){
+    distance += pow(p1[i] - p2[i], 2);
+  }
+  distance = sqrt(distance);
+  return distance;
+}
