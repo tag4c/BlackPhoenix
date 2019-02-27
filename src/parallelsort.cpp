@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
 		vector <double> globalPositionValueData;
 
 		readFile(fileList[0], dataArray, linesToRead);
-		sortPrep(dataArray, columnToSort,0,dataArray.size(-1));
+		sortPrep(dataArray, columnToSort,0,dataArray.size()-1);
 
 		vector <double> localPercentile(mbins*worldSize-1);
 		int numOfPercentiles = mbins*worldSize;
