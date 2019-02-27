@@ -69,15 +69,15 @@ int main()
     std::vector<std::string> dirListing;
     std::vector<std::string> dataFileList;
     std::string path = "../../coms7900/";
-    std::string outpath = "/data/shared/shared/coms7900-data/BlackPhoenixBinary/";
+    std::string outpath = "";
     std::string filepath; // reusable string to specify full string path
-    std::cout << "dataArray size: " << dataArray.size() << std::endl;
-    read_directory(path, dirListing);
+   // std::cout << "dataArray size: " << dataArray.size() << std::endl;
+   // read_directory(path, dirListing);
 
-    std::cout << "Finished reading directory." << std::endl;
+    //std::cout << "Finished reading directory." << std::endl;
 
     fileCount = 0;
-    for (i = 0; i < dirListing.size(); i++)
+   /* for (i = 0; i < dirListing.size(); i++)
     {
     	if (dirListing[i] == ".." || dirListing[i] == "." || dirListing[i] == "binary" || dirListing[i] == "BlackPhoenixBinary")
     	{
@@ -93,11 +93,11 @@ int main()
     }
 
     std::cout << "Finished parsing file list" << std::endl;
-
-    for (i = 0; i < 256; i++)
+*/
+    for (i = 0; i < 1; i++)
     {
-        filepath = path + dataFileList[i];
-
+        //filepath = path + dataFileList[i];
+	filepath = path + "datafile00501.txt";
         std::cout << "Reading: " << filepath << std::endl;
 
         std::ifstream inFile(filepath);
@@ -108,6 +108,7 @@ int main()
               //  while (lineCount < 1000000)
             {
                 inFile >> lineData.id;
+		lineData.id = lineCount;
                 inFile >> lineData.col1;
                 inFile >> lineData.col2;
                 inFile >> lineData.col3;
@@ -130,7 +131,8 @@ int main()
             std::cout << filepath << std::endl;
             exit(1);
         }
-        filepath = outpath + dataFileList[i].substr(0, dataFileList[i].size()-4) + ".bin";
+        //filepath = outpath + dataFileList[i].substr(0, dataFileList[i].size()-4) + ".bin";
+        filepath = outpath + "datafile00501.bin";
         std::ofstream outFile(filepath, std::ios::binary | std::ios::out);
         std::cout << "Writing new file: " << filepath << std::endl;
         if (outFile.is_open())
