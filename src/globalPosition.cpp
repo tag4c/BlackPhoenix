@@ -2,7 +2,7 @@
 
 #include "globalPosition.h"
 
-void globalPositionValue (std::vector< std::vector <double> >& localPositionValueArray, int& numNodes, std::vector <double>& globalPositionValue)
+void globalPositionValue (std::vector< std::vector <double> >& localPositionValueArray, int& numNodes, std::vector <double>& globalPositionValue,int &numOfBins)
 {
   int i,j;
   double sumOfPos = double(0.0);
@@ -11,9 +11,8 @@ void globalPositionValue (std::vector< std::vector <double> >& localPositionValu
       sumOfPos+=localPositionValueArray[j][0];
       
     }
-  
   globalPositionValue.push_back(sumOfPos/numNodes);
-  for (j=1; j<(numNodes-1); j++)
+  for (j=1; j<(numOfBins); j++)
     {
       sumOfPos=0;
       int count=0;

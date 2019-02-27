@@ -37,6 +37,6 @@ void assignFilesToRead(std::string &dirpath, int worldSize, std::vector <std::ve
 void read_directory(const std::string& name, std::vector<int>& v);
 void decodeFilesToRead(int fileEachNodeSize, std::vector <std::vector<int>> &fileEachNode, std::vector <std::string> &fileList, std::string path);
 void sendFilesToRead(int &worldSize, std::vector <std::vector<int>>  &fileEachNode, MPI_Request &request, int &fileEachNodeSize);
-void recvLocalPercentile(std::vector <double> &localPercentile, int &worldSize, MPI_Status &status, std::vector <std::vector <double>> &localPercentileList);
+void recvLocalPercentile(std::vector <double> &localPercentile, int &worldSize, MPI_Status &status, std::vector <std::vector <double>> &localPercentileList, int &numOfBins);
 void sendGlobalPositionValue(int &arraySize, std::vector <double> &globalPositionValueData);
-void swapDataHead(int &worldSize, std::vector <dataStruct> &dataArray, int &myrank, std::vector <int> &posIndex);
+void swapDataHead(int &worldSize, std::vector <dataStruct> &dataArray, int &myrank, int *posIndex);

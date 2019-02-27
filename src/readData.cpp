@@ -80,7 +80,7 @@ void readFile(std::string &filepath, std::vector<dataStruct> &dataArray, int &li
 			while ( lineCount < linesToRead )
 			{
 
-				file.read((char*)&lineData.id, 4);
+				file.read((char*)&lineData.id, 8);
     			file.read((char*)&lineData.coordinates[0], 8);
     		
     			file.read((char*)&lineData.coordinates[1], 8);
