@@ -164,6 +164,16 @@ int main(int argc, char *argv[])
 		tree = new node [2*dataArray.size()];        
 		kdTree(dataArray, 1, 0, dataArray.size()-1, tree);
 
+		double* sp;
+		sp = new double [3];
+		sp[0] = 0.0;
+		sp[1] = 0.0;
+		sp[2] = 0.0;
+		double radius = 0.1;
+		vector<int> neighPoints(0);
+		int maxNode = 2*dataArray.size();
+		kdTree_search(tree,radius,sp,maxNode,neighPoints);
+
 		/*std::cout << "Number of nodes in tree: " << tree[1].below << std::endl;
 		std::cout << "Min: (x,y,z): " << tree[1].min[0] << " " << tree[1].min[1] << " " << tree[1].min[2] << std::endl;
 		std::cout << "Max: (x,y,z): " << tree[1].max[0] << " " << tree[1].max[1] << " " << tree[1].max[2] << std::endl;
