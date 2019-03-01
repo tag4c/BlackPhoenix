@@ -1,4 +1,6 @@
 *.[oa]
 *.bin
+*.txt
 build/
 parallelsort
+core.*

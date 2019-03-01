@@ -8,7 +8,7 @@ void kdTree(vector<dataStruct> &data, int id, int left, int right, node *nodes){
 int i,j,k;
 int dim;
 double temp[3];
-nodes[id].below=(left-right+1);
+nodes[id].below=(right-left+1);
 //check if only one data point in node
 if(nodes[id].below==1)
   return;

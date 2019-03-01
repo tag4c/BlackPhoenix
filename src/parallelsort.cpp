@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 	char b;
 	int maxFiles;
 	int maxNodes;
-	int columnToSort = 0;
+	int columnToSort = 1;
 	int linesToRead = 0;
 	std::string path;
         clock_t start=clock();
@@ -160,8 +160,17 @@ int main(int argc, char *argv[])
 
         /* Create KD Tree */
 
+		node *tree;
+		tree = new node [2*dataArray.size()];        
+		kdTree(dataArray, 1, 0, dataArray.size()-1, tree);
 
+		/*std::cout << "Number of nodes in tree: " << tree[1].below << std::endl;
+		std::cout << "Min: (x,y,z): " << tree[1].min[0] << " " << tree[1].min[1] << " " << tree[1].min[2] << std::endl;
+		std::cout << "Max: (x,y,z): " << tree[1].max[0] << " " << tree[1].max[1] << " " << tree[1].max[2] << std::endl;
 
+		std::cout << "Min: (x,y,z): " << tree[2].min[0] << " " << tree[2].min[1] << " " << tree[2].min[2] << std::endl;
+		std::cout << "Max: (x,y,z): " << tree[2].max[0] << " " << tree[2].max[1] << " " << tree[2].max[2] << std::endl;
+*/
 		//vector <double> globalPositionValueData;
 		//vector <vector <double>> localPercentileList;
 		//vector <double> localPercentile(mbins*worldSize-1);
@@ -279,7 +288,7 @@ int main(int argc, char *argv[])
 		while ( linecount < dataArray.size() )
 		{
 
-            file << std::setprecision(15) << dataArray[linecount].coordinates[0] << "\n";
+            file << std::setprecision(15) << dataArray[linecount].coordinates[1] << "\n";
         //             std::cout << dataArray[linecount].id << " " << std::setprecision(15) << dataArray[linecount].coordinates[0] << " " << dataArray[linecount].coordinates[1] << " " << dataArray[linecount].coordinates[2] << "\n";
 			linecount++;
 		}
