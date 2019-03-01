@@ -22,5 +22,5 @@ double length;
 };
 #endif
 void kdTree(vector<dataStruct>& data,int id,int left, int right,node *nodes);
-int kdTree_search(node* nodes, double radius, double* sp, int MaxNode, int nodeNum=1);
+void kdTree_search(node* nodes, double radius, double* sp, int MaxNode, vector<int>& neighPoints, int nodeNum=1);
 double dis(double* p1, double* p2);

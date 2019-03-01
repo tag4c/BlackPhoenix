@@ -9,8 +9,9 @@ void kdTree(vector<dataStruct> &data, int id, int left, int right, node *nodes){
   int i,j,k;
   int dim;
   double temp[3];
+  nodes[id].id = id;
   cout << "id  = " << id << endl;
-  nodes[id].below=(left-right+1);
+  nodes[id].below=(right-left+1);
   cout << "below = " << nodes[id].below << endl;
   //check if only one data point in node
   if(nodes[id].below==1){
@@ -86,7 +87,7 @@ void kdTree(vector<dataStruct> &data, int id, int left, int right, node *nodes){
   kdTree(data, id*2+1,mid+1, right, nodes);
 }
 
-int kdTree_search(node* nodes, double radius, double* sp, int maxNode, int nodeNum)
+void kdTree_search(node* nodes, double radius, double* sp, int maxNode, vector<int>& neighPoints, int nodeNum)
 {
   double spToCent = dis(sp,nodes[nodeNum].cent);
   double maxNodeLen = nodes[nodeNum].length;
@@ -103,7 +104,7 @@ int kdTree_search(node* nodes, double radius, double* sp, int maxNode, int nodeN
     kdTree_search(nodes,radius,sp,subNodeNum2);
   }
   else{
-    return nodes[nodeNum].id;
+    neighPoints.push_back(nodes[nodeNum].id);
   }
 }  
 
