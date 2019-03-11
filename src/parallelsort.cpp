@@ -11,7 +11,7 @@
 #include <string>
 #include <iomanip>
 #include <unistd.h>
-//#include "mpi.h"
+#include "mpi.h"
 #include <time.h>
 
 // Common library includes for everyone...
@@ -23,12 +23,34 @@
 #include "readData.h"
 #include "sortPrep.h"
 #include "writeData.h"
+#include "findPercentile.h"
+#include "globalPosition.h"
+#include "sperateArray.h"
+#include "headNodeMethods.h"
+#include "workerNodeMethods.h"
 #include "kdTree.h"
-//#include "findPercentile.h"
-//#include "globalPosition.h"
-//#include "sperateArray.h"
-//#include "headNodeMethods.h"
-//#include "workerNodeMethods.h"
+
+
+
+// Functions needed for header includes
+/*
+read in data
+sort
+local location data (percentiles)
+collect data (send local location data to head node)
+head node calculates global location data, makes bin assignments
+head node broadcasts global location data to all slave nodes.
+broadcast bin data
+slave nodes assign data to bins.
+value data exchanged (sending struct's)
+All nodes sort
+write results to appropriate files
+
+
+
+*/
+
+
 
 /* Function prototypes    */
 
@@ -78,11 +100,15 @@ int main(int argc, char *argv[])
 	char b;
 	int maxFiles;
 	int maxNodes;
-	int columnToSort = 1;
+	int columnToSort = 0;
 	int linesToRead = 0;
 	std::string path;
         clock_t start=clock();
 
+	/* Variable initialization */
+	//maxFiles = atoi(argv[1]);  // First command line argument for Number of files to read
+	//maxNodes = atoi(argv[2]); // Second command line argument for number of compute nodes to use for the sort
+	//columnToSort = atoi(argv[3]); // third command line argument - column  to sort on
 	if (argc > 1)
 	{
 		linesToRead = atoi(argv[1]);
@@ -90,39 +116,39 @@ int main(int argc, char *argv[])
 	}
 
 	/* MPI Setup */
-	//int myrank, worldSize; // myrank - Node ID, worldSize - number of nodes available
-	//MPI_Init(&argc, &argv);
+	int myrank, worldSize; // myrank - Node ID, worldSize - number of nodes available
+	MPI_Init(&argc, &argv);
 	char a;
 	//alarm(180);
-	//MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-	//MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+	MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
 
 	/*  Create our MPI Datatype to pass our structure back and forth  */
 
 	/* This might need to be in communication.cpp, I don't think it's needed in the main driver. */
 	/* ========================================*/
-	//int blockSize[2] = { 1, 3 };
-	//MPI_Datatype MPI_dataStruct[2] = { MPI_LONG_LONG_INT, MPI_DOUBLE };
-	//MPI_Datatype MPI_dataArray;
-	//MPI_Aint offsets[2];
+	int blockSize[2] = { 1, 3 };
+	MPI_Datatype MPI_dataStruct[2] = { MPI_LONG_LONG_INT, MPI_DOUBLE };
+	MPI_Datatype MPI_dataArray;
+	MPI_Aint offsets[2];
 
-	//offsets[0] = offsetof(dataStruct, id);
-	//offsets[1] = offsetof(dataStruct, coordinates);
+	offsets[0] = offsetof(dataStruct, id);
+	offsets[1] = offsetof(dataStruct, coordinates);
 
-	//MPI_Type_create_struct(2, blockSize, offsets, MPI_dataStruct, &MPI_dataArray);
+	MPI_Type_create_struct(2, blockSize, offsets, MPI_dataStruct, &MPI_dataArray);
 
-	//MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
+	MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
 	/* ========================================*/
 	/* Scheduler Node (HEAD NODE) */
-       // const int mbins=10;
-       // const float scale=1.05;
-	//if (myrank == 0)
-	//{
+        const int mbins=10;
+        const float scale=1.05;
+	if (myrank == 0)
+	{
         	clock_t  t1,t2;
        		t1=start;
 		/* Have this node read all data in and send it out first? */
-		//MPI_Request request;
-		//MPI_Status status;
+		MPI_Request request;
+		MPI_Status status;
 		int fileEachNodeSize;
                 ofstream timeData;
                 timeData.open("timing.txt");
@@ -132,88 +158,63 @@ int main(int argc, char *argv[])
 		std::string dirpath = path;
 		std::vector <std::vector<int>> fileEachNode;
 
-		//assignFilesToRead(dirpath, worldSize, fileEachNode); // determine number of files each node gets to read.
+		assignFilesToRead(dirpath, worldSize, fileEachNode); // determine number of files each node gets to read.
 
-	//	sendFilesToRead(worldSize, fileEachNode, request, fileEachNodeSize);
+		sendFilesToRead(worldSize, fileEachNode, request, fileEachNodeSize);
 
-		//std::vector <std::string> fileList(fileEachNodeSize);
+		std::vector <std::string> fileList(fileEachNodeSize);
 
 
-		//decodeFilesToRead(fileEachNodeSize, fileEachNode, fileList, path);
-		std::string fileName = "datafile00501.bin";
+		decodeFilesToRead(fileEachNodeSize, fileEachNode, fileList, path);
 
 		std::vector <dataStruct> dataArray;
 		
-		readFile(fileName, dataArray, linesToRead);
+		readFile(fileList[0], dataArray, linesToRead);
                 t2=clock()-t1;
                 t1=t2;
                 timeData<<"time to read files from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
-//                cout<<dataArray[0].coordinates[0]<<endl;
+                cout<<dataArray[0].coordinates[0]<<endl;
 		sortPrep(dataArray, columnToSort,0,dataArray.size()-1);
-  //              cout<<dataArray[0].coordinates[0]<<endl;
+                cout<<dataArray[0].coordinates[0]<<endl;
                 t2=clock()-t1;
                 t1=t2;
                 timeData<<"time for local sort from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
 
-
-        /* Create KD Tree */
-
-		node *tree;
-		tree = new node [2*dataArray.size()];        
-		kdTree(dataArray, 1, 0, dataArray.size()-1, tree);
-
-		double* sp;
-		sp = new double [3];
-		sp[0] = 0.0;
-		sp[1] = 0.0;
-		sp[2] = 0.0;
-		double radius = 0.1;
-		vector<int> neighPoints(0);
-		int maxNode = 2*dataArray.size();
-		kdTree_search(tree,radius,sp,maxNode,neighPoints);
-
-		/*std::cout << "Number of nodes in tree: " << tree[1].below << std::endl;
-		std::cout << "Min: (x,y,z): " << tree[1].min[0] << " " << tree[1].min[1] << " " << tree[1].min[2] << std::endl;
-		std::cout << "Max: (x,y,z): " << tree[1].max[0] << " " << tree[1].max[1] << " " << tree[1].max[2] << std::endl;
-
-		std::cout << "Min: (x,y,z): " << tree[2].min[0] << " " << tree[2].min[1] << " " << tree[2].min[2] << std::endl;
-		std::cout << "Max: (x,y,z): " << tree[2].max[0] << " " << tree[2].max[1] << " " << tree[2].max[2] << std::endl;
-*/
-		//vector <double> globalPositionValueData;
-		//vector <vector <double>> localPercentileList;
-		//vector <double> localPercentile(mbins*worldSize-1);
-		//int numOfPercentiles = mbins*worldSize;
-		//int arraySize = dataArray.size();
-		//double numDataEachPart = 0.0;
-          //      cout<<dataArray[0].coordinates[0]<<endl;
-		//findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 
-		//localPercentileList.push_back(localPercentile);
+		vector <double> globalPositionValueData;
+		vector <vector <double>> localPercentileList;
+		vector <double> localPercentile(mbins*worldSize-1);
+		int numOfPercentiles = mbins*worldSize;
+		int arraySize = dataArray.size();
+		double numDataEachPart = 0.0;
+                cout<<dataArray[0].coordinates[0]<<endl;
+		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 
+		localPercentileList.push_back(localPercentile);
 
 		/* Receive local percentile data from worker nodes */
 
-		//recvLocalPercentile(localPercentile, worldSize, status, localPercentileList,numOfPercentiles);
-         //       cout<<"debug4\n";
+		recvLocalPercentile(localPercentile, worldSize, status, localPercentileList,numOfPercentiles);
+                cout<<"debug4\n";
 
 		/* Calculate global position data */
 
-		//globalPositionValue(localPercentileList, worldSize, globalPositionValueData,numOfPercentiles);
-           
+		globalPositionValue(localPercentileList, worldSize, globalPositionValueData,numOfPercentiles);
+                cout<<"debug5\n";
 		
-		//arraySize = globalPositionValueData.size();
+		arraySize = globalPositionValueData.size();
 		
 		/* Broadcast gpv data to all nodes */
 
-		//sendGlobalPositionValue(arraySize, globalPositionValueData);
-         
+		sendGlobalPositionValue(arraySize, globalPositionValueData);
+                cout<<"debug6\n";
 
-		//vector <int> remotePosIndex;
+		vector <int> remotePosIndex;
 
-		//arraySize = dataArray.size();
+		arraySize = dataArray.size();
 
 		//double numDataEachPart;
-		/*vector <int> posIndex;
+		vector <int> posIndex;
 
                 cout<<dataArray[0].coordinates[0]<<endl;
 		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);		
@@ -282,23 +283,19 @@ int main(int argc, char *argv[])
                 t1=t2;
                 timeData<<"final sort:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
-		
+		int linecount = 0;
 		std::string filepath = to_string(myrank) + "output.txt";
 		std::ofstream file(filepath);
 
 		//std::cout << "Size of dataArray: " << dataArray.size() << std::endl;
-		*/
 		// write new files
-        int linecount = 0;
-		std::string filepath = "output.txt";
-		std::ofstream file(filepath);
 
 		if (file.is_open())
 	{
 		while ( linecount < dataArray.size() )
 		{
 
-            file << std::setprecision(15) << dataArray[linecount].coordinates[1] << "\n";
+            file << std::setprecision(15) << dataArray[linecount].coordinates[0] << "\n";
         //             std::cout << dataArray[linecount].id << " " << std::setprecision(15) << dataArray[linecount].coordinates[0] << " " << dataArray[linecount].coordinates[1] << " " << dataArray[linecount].coordinates[2] << "\n";
 			linecount++;
 		}
@@ -308,11 +305,173 @@ int main(int argc, char *argv[])
 
 	}
 
-		//MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_WORLD);
                 t2=clock()-start;
                 timeData<<"final time from head node: "<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
-	//}
+		std::string fileName = "datafile00501.bin";
+		// Begin KDTREE Steps
+		dirpath = path;
+	readFile(fileName, dataArray, linesToRead);
+	sortPrep(dataArray, columnToSort, 0, dataArray.size()-1);
+		node *tree;
+		tree = new node [2*dataArray.size()];        
+		kdTree(dataArray, 1, 0, dataArray.size()-1, tree);
+
+		double* sp;
+		sp = new double [3];
+		sp[0] = 0.0;
+		sp[1] = 0.0;
+		sp[2] = 0.0;
+		double radius = 0.1;
+		vector<int> neighPoints(0);
+		int maxNode = 2*dataArray.size();
+kdTree_search(tree,radius,sp,maxNode,neighPoints);
+ linecount = 0;
+		filepath = myrank + "output.txt";
+		
+		std::ofstream outfile(filepath);
+
+		if (outfile.is_open())
+	{
+		while ( linecount < dataArray.size() )
+		{
+
+            outfile << std::setprecision(15) << dataArray[linecount].coordinates[1] << "\n";
+		}
+	}
+        //             std::cout << dataArray[linecount].id << " " << std::setprecision(15) << dataArray[linecount].coordinates[0] << " " << dataArray[linecount].coordinates[1] << " " << dataArray[linecount].coordinates[2] << "\n";
+        //             			linecount++;
+        //             					}
+        //
+        //             							file.close();
+        //
+        //
+        //             							}
+	}
+	/* Slave nodes (All others) */
+	else
+	{
+		MPI_Request request;
+		MPI_Status status;
+		//int columnToSort;
+		int fileNodeEachSize = 0;
+
+		std::vector<int> localFileList;
+
+		recvFilesToRead(fileNodeEachSize, status, localFileList);
+
+		std::vector <std::string> fileList(fileNodeEachSize);
+
+
+		decodeFilesToRead(fileNodeEachSize, localFileList, fileList, path);
+
+		std::vector <dataStruct> dataArray;
+		vector <double> globalPositionValueData;
+
+		readFile(fileList[0], dataArray, linesToRead);
+		sortPrep(dataArray, columnToSort,0,dataArray.size()-1);
+
+		vector <double> localPercentile(mbins*worldSize-1);
+		int numOfPercentiles = mbins*worldSize;
+		int arraySize = dataArray.size();
+		double numDataEachPart = 0.0;
+		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 
+
+		sendLocalPercentile(worldSize, localPercentile, numOfPercentiles); 
+
+		recvGlobalPositionValue(globalPositionValueData);
+
+		arraySize = dataArray.size();
+
+		vector <int> posIndex;
+
+		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
+
+		MPI_Barrier(MPI_COMM_WORLD);
+                
+		// this needs to goto workerNodeMethods
+		// ========================================================
+                int *binSizes;
+                binSizes=new int[numOfPercentiles];
+                for(int i=0; i<numOfPercentiles;i++){
+                   if(i>0&&i<numOfPercentiles-1)
+                   binSizes[i]=posIndex[i]-posIndex[i-1]; 		
+                   else if(i==0)
+                   binSizes[i]=posIndex[i]; 		
+                   else 
+                   binSizes[i]=linesToRead-posIndex[i-1]; 		
+               } 
+		MPI_Barrier(MPI_COMM_WORLD);
+                MPI_Send(binSizes,numOfPercentiles,MPI_INT,0,0,MPI_COMM_WORLD);
+                int *boundries;
+                boundries=new int[worldSize+1];
+                MPI_Bcast(boundries,worldSize+1,MPI_INT,0,MPI_COMM_WORLD);
+                for(int i=0;i<worldSize-1;i++){
+                //cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
+                boundries[i+1]=posIndex[boundries[i+1]];
+                }
+		swapDataWorker(worldSize, dataArray, myrank, boundries);
+
+		// ========================================================
+
+		// sort
+
+		sortPrep(dataArray, columnToSort,0,dataArray.size()-1);
+
+
+		// write new files
+
+		std::string filepath = to_string(myrank) + "output.txt";
+		std::ofstream file(filepath);
+		int linecount = 0;
+
+	if (file.is_open())
+	{
+		while ( linecount < dataArray.size() )
+		{
+
+            file << std::setprecision(15) << dataArray[linecount].coordinates[0] << "\n";
+			linecount++;
+		}
+
+		file.close();
+
+
+	}
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		node *tree;
+		tree = new node [2*dataArray.size()];        
+		kdTree(dataArray, 1, 0, dataArray.size()-1, tree);
+
+		double* sp;
+		sp = new double [3];
+		sp[0] = 0.0;
+		sp[1] = 0.0;
+		sp[2] = 0.0;
+		double radius = 0.1;
+		vector<int> neighPoints(0);
+		int maxNode = 2*dataArray.size();
+kdTree_search(tree,radius,sp,maxNode,neighPoints);
+ linecount = 0;
+		filepath = to_string(myrank) + "output.txt";
+
+		
+		std::ofstream outfile(filepath);
+
+		if (outfile.is_open())
+	{
+		while ( linecount < dataArray.size() )
+		{
+
+            outfile << std::setprecision(15) << dataArray[linecount].coordinates[1] << "\n";
+		}
+	}
+}
+	MPI_Type_free(&MPI_dataArray); // clean up
+	MPI_Finalize(); // clean up MPI usage
+
 	return 0;
 
 
