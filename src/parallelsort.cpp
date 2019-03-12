@@ -356,27 +356,56 @@ int main(int argc, char *argv[])
 
 		decodeFilesToRead(fileNodeEachSize, localFileList, fileList, path);
 
-		std::vector <dataStruct> dataArray;
+		//std::vector <dataStruct> dataArray;
+		std::vector < std::vector<dataStruct>> dataArrayList;
+		dataArrayList.reserve(fileList.size());
 		vector <double> globalPositionValueData;
 
-		readFile(fileList[0], dataArray, linesToRead);
-		sortPrep(dataArray, columnToSort, 0, dataArray.size() - 1);
-
-		vector <double> localPercentile(mbins * worldSize - 1);
+		vector <vector <double>> localPercentileList(fileList.size());
 		int numOfPercentiles = mbins * worldSize;
-		int arraySize = dataArray.size();
 		double numDataEachPart = 0.0;
-		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart);
 
-		sendLocalPercentile(worldSize, localPercentile, numOfPercentiles);
+		for (i = 0; i < fileList.size(); i++)
+		{
+			int arraySize = dataArrayList[i].size();
+			vector <double> localPercentile(mbins * worldSize - 1);
+			readFile(fileList[i], dataArrayList[i], linesToRead); // read
+			sortPrep(dataArrayList[i], columnToSort, 0, dataArrayList[i].size() - 1); // sort
+			findPercentile(dataArrayList[i], numOfPercentiles, arraySize, columnToSort, localPercentileList[i], numDataEachPart);
+		}
+
+		//readFile(fileList[0], dataArray, linesToRead);
+		//sortPrep(dataArray, columnToSort, 0, dataArray.size() - 1);
+
+		//vector <double> localPercentile(mbins * worldSize - 1);
+		//int numOfPercentiles = mbins * worldSize;
+		//int arraySize = dataArray.size();
+		//double numDataEachPart = 0.0;
+		//findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart);
+		for (i = 0; i < fileList.size(); i++)
+		{
+			sendLocalPercentile(worldSize, localPercentileList[i], numOfPercentiles);
+		}
+		
 
 		recvGlobalPositionValue(globalPositionValueData);
 
 		arraySize = dataArray.size();
 
-		vector <int> posIndex;
+		vector <vector <int>> posIndexList(fileList.size());
 
-		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
+		// sperate array loop
+
+		for (i = 0; i < fileList.size(); i++)
+		{
+			int dataSize = dataArrayList[i].size();
+			sperateArray(dataArrayList[i], dataSize, globalPositionValueData, numDataEachPart, columnToSort, posIndexList[i]);
+
+		}
+
+		//vector <int> posIndex;
+
+		//sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
 
 		MPI_Barrier(MPI_COMM_WORLD);
 
