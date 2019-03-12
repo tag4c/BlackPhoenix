@@ -75,15 +75,15 @@ struct dataStruct
 };
 #endif
 
-#ifndef DATA_N 
+#ifndef DATA_N
 #define DATA_N
-struct node{
-int id;
-int below;
-double cent[3];
-double min[3];
-double max[3];
-double length; 
+struct node {
+	int id;
+	int below;
+	double cent[3];
+	double min[3];
+	double max[3];
+	double length;
 };
 #endif
 
@@ -95,14 +95,14 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 	/* Variable Declarations */
-	int i,j, k;
+	int i, j, k;
 	char b;
 	int maxFiles;
 	int maxNodes;
 	int columnToSort = 0;
 	int linesToRead = 0;
 	std::string path;
-        clock_t start=clock();
+	clock_t start = clock();
 
 	/* Variable initialization */
 	//maxFiles = atoi(argv[1]);  // First command line argument for Number of files to read
@@ -139,18 +139,18 @@ int main(int argc, char *argv[])
 	MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
 	/* ========================================*/
 	/* Scheduler Node (HEAD NODE) */
-        const int mbins=10;
-        const float scale=1.05;
+	const int mbins = 10;
+	const float scale = 1.05;
 	if (myrank == 0)
 	{
-        	clock_t  t1,t2;
-       		t1=start;
+		clock_t  t1, t2;
+		t1 = start;
 		/* Have this node read all data in and send it out first? */
 		MPI_Request request;
 		MPI_Status status;
 		int fileEachNodeSize;
-                ofstream timeData;
-                timeData.open("timing.txt");
+		ofstream timeData;
+		timeData.open("timing.txt");
 		//std::string dirpath = "/data/shared/shared/coms7900-data/BlackPhoenixBinary/";
 
 		//std::string dirpath = "/home/dtl2d/BlackPhoenix/datafiles/binary/output/";
@@ -166,121 +166,151 @@ int main(int argc, char *argv[])
 
 		decodeFilesToRead(fileEachNodeSize, fileEachNode, fileList, path);
 
-		std::vector <dataStruct> dataArray;
-		
-		readFile(fileList[0], dataArray, linesToRead);
-                t2=clock()-t1;
-                t1=t2;
-                timeData<<"time to read files from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
+		std::vector<std::vector <dataStruct>> dataArrayList;
+		dataArrayList.reserve(fileList.size());
+		vector <vector <double>> localPercentileList(fileList.size());
+		int numOfPercentiles = mbins * worldSize;
+		double numDataEachPart = 0.0;
 
-                cout<<dataArray[0].coordinates[0]<<endl;
-		sortPrep(dataArray, columnToSort,0,dataArray.size()-1);
-                cout<<dataArray[0].coordinates[0]<<endl;
-                t2=clock()-t1;
-                t1=t2;
-                timeData<<"time for local sort from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
+
+		for (i = 0; i < fileList.size(); i++)
+		{
+
+			int arraySize = dataArrayList[i].size();
+			vector <double> localPercentile(mbins * worldSize - 1);
+			readFile(fileList[i], dataArrayList[i], linesToRead); // read
+			sortPrep(dataArrayList[i], columnToSort, 0, dataArrayList[i].size() - 1); // sort
+			findPercentile(dataArrayList[i], numOfPercentiles, arraySize, columnToSort, localPercentileList[i], numDataEachPart);
+		}
+
+		vector <double> localGlobalPercentile(numOfPercentiles);
+
+		globalPositionValue(localPercentileList, worldSize, localGlobalPercentile, numOfPercentiles);
+
+
+
+		//  t2=clock()-t1;
+		//t1=t2;
+		// timeData<<"time to read files from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
+
+		//   cout<<dataArray[0].coordinates[0]<<endl;
+
+		//cout<<dataArray[0].coordinates[0]<<endl;
+		//t2=clock()-t1;
+		//t1=t2;
+		//timeData<<"time for local sort from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
 
 		vector <double> globalPositionValueData;
-		vector <vector <double>> localPercentileList;
-		vector <double> localPercentile(mbins*worldSize-1);
-		int numOfPercentiles = mbins*worldSize;
-		int arraySize = dataArray.size();
-		double numDataEachPart = 0.0;
-                cout<<dataArray[0].coordinates[0]<<endl;
-		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 
-		localPercentileList.push_back(localPercentile);
+
+		vector < vector <double>> localGlobalPercentileList(worldSize);
+
+
+
+		// cout<<dataArray[0].coordinates[0]<<endl;
+
 
 		/* Receive local percentile data from worker nodes */
 
-		recvLocalPercentile(localPercentile, worldSize, status, localPercentileList,numOfPercentiles);
-                cout<<"debug4\n";
+		recvLocalPercentile(localGlobalPercentile, worldSize, status, localGlobalPercentileList, numOfPercentiles);
+		//	cout << "debug4\n";
 
 		/* Calculate global position data */
 
-		globalPositionValue(localPercentileList, worldSize, globalPositionValueData,numOfPercentiles);
-                cout<<"debug5\n";
-		
-		arraySize = globalPositionValueData.size();
-		
+		globalPositionValue(localGlobalPercentileList, worldSize, globalPositionValueData, numOfPercentiles);
+		cout << "debug5\n";
+
+		int arraySize = globalPositionValueData.size();
+
 		/* Broadcast gpv data to all nodes */
 
 		sendGlobalPositionValue(arraySize, globalPositionValueData);
-                cout<<"debug6\n";
+		cout << "debug6\n";
 
 		vector <int> remotePosIndex;
 
-		arraySize = dataArray.size();
+		vector <vector <int>> posIndexList(fileList.size());
+
+		// sperate array loop
+
+		for (i = 0; i < fileList.size(); i++)
+		{
+			int dataSize = dataArrayList[i].size();
+			sperateArray(dataArrayList[i], dataSize, globalPositionValueData, numDataEachPart, columnToSort, posIndexList[i]);
+
+		}
+
+		//arraySize = dataArray.size();
 
 		//double numDataEachPart;
-		vector <int> posIndex;
 
-                cout<<dataArray[0].coordinates[0]<<endl;
-		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);		
-                cout<<dataArray[0].coordinates[0]<<endl;
-                cout<<"debug7\n";
+
+		//cout << dataArray[0].coordinates[0] << endl;
+
+		//cout << dataArray[0].coordinates[0] << endl;
+		cout << "debug7\n";
 
 		MPI_Barrier(MPI_COMM_WORLD);
-                t2=clock()-t1;
-                t1=t2;
-                timeData<<"time to find where data should go:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
-                int *binSizes;
-                int *binSizes2;
-                binSizes=new int[numOfPercentiles];
-                binSizes2=new int[numOfPercentiles];
-                for(int i=0; i<numOfPercentiles;i++){
-                binSizes[i]=0;
-		
-                }
-                for(int i=0; i<numOfPercentiles;i++){
-                   if(i>0&&i<numOfPercentiles-1)
-                   binSizes[i]=posIndex[i]-posIndex[i-1]; 		
-                   else if(i==0)
-                   binSizes[i]=posIndex[i]; 		
-                   else 
-                   binSizes[i]=linesToRead-posIndex[i-1]; 		
-               } 
+		t2 = clock() - t1;
+		t1 = t2;
+		timeData << "time to find where data should go:" << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
+		int *binSizes;
+		int *binSizes2;
+		binSizes = new int[numOfPercentiles];
+		binSizes2 = new int[numOfPercentiles];
+		for (int i = 0; i < numOfPercentiles; i++) {
+			binSizes[i] = 0;
+
+		}
+		for (int i = 0; i < numOfPercentiles; i++) {
+			if (i > 0 && i < numOfPercentiles - 1)
+				binSizes[i] = posIndex[i] - posIndex[i - 1];
+			else if (i == 0)
+				binSizes[i] = posIndex[i];
+			else
+				binSizes[i] = linesToRead - posIndex[i - 1];
+		}
 		MPI_Barrier(MPI_COMM_WORLD);
-               for(int i=1;i<worldSize;i++){ 
-                MPI_Recv(binSizes2,numOfPercentiles,MPI_INT,i,0,MPI_COMM_WORLD,&status);
-                   for(int j=0; j<numOfPercentiles;j++){
-                       binSizes[j]=binSizes[j]+binSizes2[j];
-                       }
-                }
-                int *boundries;
-                boundries=new int[worldSize+1];
-                boundries[0]=0;
-                boundries[worldSize]=linesToRead;
-                int temp=0,index=1;
+		for (int i = 1; i < worldSize; i++) {
+			MPI_Recv(binSizes2, numOfPercentiles, MPI_INT, i, 0, MPI_COMM_WORLD, &status);
+			for (int j = 0; j < numOfPercentiles; j++) {
+				binSizes[j] = binSizes[j] + binSizes2[j];
+			}
+		}
+		int *boundries;
+		boundries = new int[worldSize + 1];
+		boundries[0] = 0;
+		boundries[worldSize] = linesToRead;
+		int temp = 0, index = 1;
 
-                for(int i=0;i<numOfPercentiles;i++){
-                if((temp+binSizes[i])<(linesToRead*scale)){
-                temp=temp+binSizes[i];
-                }else{ 
-                boundries[index]=i-1;
-                cout<<"node "<<index-1<<" will get "<<temp<<" elements\n";
-                index++;
-                temp=binSizes[i]; 
-                }
-               }
-                MPI_Bcast(boundries,worldSize+1,MPI_INT,0,MPI_COMM_WORLD);
-                for(int i=0;i<worldSize-1;i++){
-                //cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
-                boundries[i+1]=posIndex[boundries[i+1]];
-                 }
+		for (int i = 0; i < numOfPercentiles; i++) {
+			if ((temp + binSizes[i]) < (linesToRead * scale)) {
+				temp = temp + binSizes[i];
+			} else {
+				boundries[index] = i - 1;
+				cout << "node " << index - 1 << " will get " << temp << " elements\n";
+				index++;
+				temp = binSizes[i];
+			}
+		}
+		MPI_Bcast(boundries, worldSize + 1, MPI_INT, 0, MPI_COMM_WORLD);
+		for (int i = 0; i < worldSize - 1; i++) {
+			//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
+			boundries[i + 1] = posIndex[boundries[i + 1]];
+		}
 
-               // for(int i=0;i<worldSize;i++)
-                //cout<<"node "<<i<<" gets "<<boundries[i]<<" to" <<boundries[i+1]<<" from "<<myrank<<endl;
+		// for(int i=0;i<worldSize;i++)
+		//cout<<"node "<<i<<" gets "<<boundries[i]<<" to" <<boundries[i+1]<<" from "<<myrank<<endl;
 
 		swapDataHead(worldSize, dataArray, myrank, boundries);
-                t2=clock()-t1;
-                t1=t2;
-                timeData<<"time to send data:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
+		t2 = clock() - t1;
+		t1 = t2;
+		timeData << "time to send data:" << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
 
-		sortPrep(dataArray, columnToSort,0,dataArray.size()-1);
-                t2=clock()-t1;
-                t1=t2;
-                timeData<<"final sort:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
+		sortPrep(dataArray, columnToSort, 0, dataArray.size() - 1);
+		t2 = clock() - t1;
+		t1 = t2;
+		timeData << "final sort:" << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
 
 		int linecount = 0;
 		std::string filepath = to_string(myrank) + "output.txt";
@@ -290,23 +320,23 @@ int main(int argc, char *argv[])
 		// write new files
 
 		if (file.is_open())
-	{
-		while ( linecount < dataArray.size() )
 		{
+			while ( linecount < dataArray.size() )
+			{
 
-            file << std::setprecision(15) << dataArray[linecount].coordinates[0] << "\n";
-        //             std::cout << dataArray[linecount].id << " " << std::setprecision(15) << dataArray[linecount].coordinates[0] << " " << dataArray[linecount].coordinates[1] << " " << dataArray[linecount].coordinates[2] << "\n";
-			linecount++;
+				file << std::setprecision(15) << dataArray[linecount].coordinates[0] << "\n";
+				//             std::cout << dataArray[linecount].id << " " << std::setprecision(15) << dataArray[linecount].coordinates[0] << " " << dataArray[linecount].coordinates[1] << " " << dataArray[linecount].coordinates[2] << "\n";
+				linecount++;
+			}
+
+			file.close();
+
+
 		}
 
-		file.close();
-
-
-	}
-
 		MPI_Barrier(MPI_COMM_WORLD);
-                t2=clock()-start;
-                timeData<<"final time from head node: "<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
+		t2 = clock() - start;
+		timeData << "final time from head node: " << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
 
 	}
 	/* Slave nodes (All others) */
@@ -330,15 +360,15 @@ int main(int argc, char *argv[])
 		vector <double> globalPositionValueData;
 
 		readFile(fileList[0], dataArray, linesToRead);
-		sortPrep(dataArray, columnToSort,0,dataArray.size()-1);
+		sortPrep(dataArray, columnToSort, 0, dataArray.size() - 1);
 
-		vector <double> localPercentile(mbins*worldSize-1);
-		int numOfPercentiles = mbins*worldSize;
+		vector <double> localPercentile(mbins * worldSize - 1);
+		int numOfPercentiles = mbins * worldSize;
 		int arraySize = dataArray.size();
 		double numDataEachPart = 0.0;
-		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart); 
+		findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart);
 
-		sendLocalPercentile(worldSize, localPercentile, numOfPercentiles); 
+		sendLocalPercentile(worldSize, localPercentile, numOfPercentiles);
 
 		recvGlobalPositionValue(globalPositionValueData);
 
@@ -349,35 +379,35 @@ int main(int argc, char *argv[])
 		sperateArray(dataArray, arraySize, globalPositionValueData, numDataEachPart, columnToSort, posIndex);
 
 		MPI_Barrier(MPI_COMM_WORLD);
-                
+
 		// this needs to goto workerNodeMethods
 		// ========================================================
-                int *binSizes;
-                binSizes=new int[numOfPercentiles];
-                for(int i=0; i<numOfPercentiles;i++){
-                   if(i>0&&i<numOfPercentiles-1)
-                   binSizes[i]=posIndex[i]-posIndex[i-1]; 		
-                   else if(i==0)
-                   binSizes[i]=posIndex[i]; 		
-                   else 
-                   binSizes[i]=linesToRead-posIndex[i-1]; 		
-               } 
+		int *binSizes;
+		binSizes = new int[numOfPercentiles];
+		for (int i = 0; i < numOfPercentiles; i++) {
+			if (i > 0 && i < numOfPercentiles - 1)
+				binSizes[i] = posIndex[i] - posIndex[i - 1];
+			else if (i == 0)
+				binSizes[i] = posIndex[i];
+			else
+				binSizes[i] = linesToRead - posIndex[i - 1];
+		}
 		MPI_Barrier(MPI_COMM_WORLD);
-                MPI_Send(binSizes,numOfPercentiles,MPI_INT,0,0,MPI_COMM_WORLD);
-                int *boundries;
-                boundries=new int[worldSize+1];
-                MPI_Bcast(boundries,worldSize+1,MPI_INT,0,MPI_COMM_WORLD);
-                for(int i=0;i<worldSize-1;i++){
-                //cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
-                boundries[i+1]=posIndex[boundries[i+1]];
-                }
+		MPI_Send(binSizes, numOfPercentiles, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		int *boundries;
+		boundries = new int[worldSize + 1];
+		MPI_Bcast(boundries, worldSize + 1, MPI_INT, 0, MPI_COMM_WORLD);
+		for (int i = 0; i < worldSize - 1; i++) {
+			//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
+			boundries[i + 1] = posIndex[boundries[i + 1]];
+		}
 		swapDataWorker(worldSize, dataArray, myrank, boundries);
 
 		// ========================================================
 
 		// sort
 
-		sortPrep(dataArray, columnToSort,0,dataArray.size()-1);
+		sortPrep(dataArray, columnToSort, 0, dataArray.size() - 1);
 
 
 		// write new files
@@ -386,19 +416,19 @@ int main(int argc, char *argv[])
 		std::ofstream file(filepath);
 		int linecount = 0;
 
-	if (file.is_open())
-	{
-		while ( linecount < dataArray.size() )
+		if (file.is_open())
 		{
+			while ( linecount < dataArray.size() )
+			{
 
-            file << std::setprecision(15) << dataArray[linecount].coordinates[0] << "\n";
-			linecount++;
+				file << std::setprecision(15) << dataArray[linecount].coordinates[0] << "\n";
+				linecount++;
+			}
+
+			file.close();
+
+
 		}
-
-		file.close();
-
-
-	}
 
 		MPI_Barrier(MPI_COMM_WORLD);
 	}
@@ -413,6 +443,6 @@ int main(int argc, char *argv[])
 
 
 
-/* Main Routine function declarations  */ 
+/* Main Routine function declarations  */
 
 
