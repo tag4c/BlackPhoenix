@@ -72,20 +72,20 @@ void kdTree(vector<dataStruct> &data, int id, int left, int right, node *nodes){
   double tempC[8];
   //make corners
   tempC[0]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
-  tempC[1]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
-  tempC[2]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
-  tempC[3]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
-  tempC[4]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
-  tempC[5]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
-  tempC[6]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
-  tempC[7]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
+  //tempC[1]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
+  //tempC[2]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
+  //tempC[3]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
+  //tempC[4]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
+  //tempC[5]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
+  //tempC[6]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
+  //tempC[7]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
   nodes[id].length=tempC[0];
   
   //find distance to farthest corner
-  for(i=1;i<8;i++){
-    if(tempC[i]>nodes[id].length)
-      nodes[id].length=tempC[i];
-  }
+  //for(i=1;i<8;i++){
+  //  if(tempC[i]>nodes[id].length)
+  //    nodes[id].length=tempC[i];
+  //}
 
   kdTree(data, id*2, left, mid, nodes);
   kdTree(data, id*2+1,mid+1, right, nodes);
