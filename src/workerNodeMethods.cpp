@@ -77,7 +77,7 @@ void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &my
 	MPI_Type_create_struct(2, blockSize, offsets, MPI_dataStruct, &MPI_dataArray);
 
 	MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
-		int i, j, k;
+		int i, j, k, max=0;
 		MPI_Request request0;
 		MPI_Request request1;
 		MPI_Request request2;
@@ -92,11 +92,19 @@ void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &my
 		int lNewSize,rNewSize;
 		int rStart, lStart, rEnd, lEnd, rLength,lLength;
 		vector <vector <dataStruct>> newData(worldSize);
+                vector <dataStruct> tempDataR;
+                vector <dataStruct> tempDataL;
 
-	
 
-              
-		while(x<=(worldSize)/2){
+                for(i=0;i<worldSize;i++){
+                  if(max<filesPerNode[i])
+                     max=filesPerNode[i];
+                }
+                int x=1; 
+
+               for(k=0;k<=max;k++){
+                x=0;
+		while(x<=(wor(dSize)/2){
 
 			right++;
 
@@ -108,6 +116,7 @@ void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &my
 			if(left<0)
 				left=worldSize-1;
 
+                        if(filesPerNode[myrank]-x>0){
 			if(right==0){
 				rStart=0; 
 			}
@@ -131,16 +140,12 @@ void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &my
 				rLength=rEnd-rStart+1;
 			}
 
-			if(myrank==2){
-//			cout<<myrank<<" sending "<<rLength<<" to "<<right << " " << rStart << " " <<rEnd <<endl;
-			}
 
 			MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
 			MPI_Isend(&dataArray.at(rStart), rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);
 	//	       cout<<myrank<<" sending "<<rLength<<" to "<<right << " from " << rStart << " to  " <<rEnd <<endl;
-		       cout<<myrank<<" sending "<<dataArray[rStart].coordinates[0]<<" to "<<right << " with ID" << dataArray[rStart].id <<endl;
-
-			if(left!=right){
+                         }
+			if(left!=right&&filesPerNode[myrank]-x>0){
 
 				if(left==0){
 					lStart=0; 
@@ -171,29 +176,42 @@ void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &my
 //			       cout<<myrank<<" sending "<<lLength<<" to "<<left << " " << lStart << " " <<lEnd <<endl;
 
 			}
+                        if(filesPerNode[right]-x>0){
 
-			MPI_Recv(&rNewSize,1,MPI_INT,right,0,MPI_COMM_WORLD,&status0);
+                        MPI_Recv(&rNewSize,1,MPI_INT,right,0,MPI_COMM_WORLD,&status0);
 
-			newData[right].reserve(rNewSize); 
-			newData[right].resize(rNewSize);
+                        tempDataR.reserve(rNewSize);
+                        tempDataR.resize(rNewSize);
 
-			MPI_Recv(&newData[right].front(),rNewSize,MPI_dataArray,right,0,MPI_COMM_WORLD,&status1);
+                        MPI_Recv(&tempDataR.front(),rNewSize,MPI_dataArray,right,0,MPI_COMM_WORLD,&status1);
+                        for(i=0;i<rNewSize;i++){
+                        newData[right].push(tempDataR[i]);
+                        }
+                        tempDataR.reserve(0);
+                        tempDataR.resize(0);
 
-			if(left!=right){
+                       }
 
-				MPI_Recv(&lNewSize,1,MPI_INT,left,0,MPI_COMM_WORLD,&status2);
+			if(left!=rightfilesPerNode[left]-x>0){
 
-				newData[left].reserve(lNewSize); 
-				newData[left].resize(lNewSize);
+                                MPI_Recv(&lNewSize,1,MPI_INT,left,0,MPI_COMM_WORLD,&status2);
 
-				MPI_Recv(&newData[left].front(),lNewSize,MPI_dataArray,left,0,MPI_COMM_WORLD,&status3);
+                                tempDataL.reserve(rNewSize);
+                                tempDataL.resize(rNewSize);
+
+                                MPI_Recv(&tempDataL.front(),lNewSize,MPI_dataArray,left,0,MPI_COMM_WORLD,&status3);
+                                for(i=0;i<lNewSize;i++){
+                                newData[left].push(tempDataL[i]);
+                                tempDataL.reserve(0);
+                                tempDataL.resize(0);
 
 			}
 
+                        if(filesPerNode[myrank]-x>0){
 			MPI_Wait(&request0,&status0);
 			MPI_Wait(&request1,&status1);
-
-			if(left!=right){
+                        }
+			if(left!=right&&filesPerNode[myrank]-x>0){
 				MPI_Wait(&request2,&status2);
 				MPI_Wait(&request3,&status3); 
 			}
@@ -204,7 +222,7 @@ void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &my
 			MPI_Barrier(MPI_COMM_WORLD);
 		}
 
-
+}
 		// copy vector selection
 
 		int lastElement;
@@ -217,11 +235,11 @@ void swapDataWorker(int &worldSize, std::vector <dataStruct> &dataArray, int &my
 		{
 			lastElement = posIndex[myrank+1];
 		}
-
+                for(j=0;j<filesPerNode[myrank];j++){
 		for (k = posIndex[myrank] + 1; k < lastElement+1; k++)
 		{
-			newData[myrank].push_back(dataArray[k]);
-		}
+			newData[myrank].push_back(dataArray[j][k]);
+		}}
 
 		// clear old data
 
