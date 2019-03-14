@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 	/* MPI Setup */
 	int myrank, worldSize; // myrank - Node ID, worldSize - number of nodes available
 	MPI_Init(&argc, &argv);
-	char a;
+	//char a;
 	//alarm(180);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 	MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 		//dataArrayList.reserve(fileList.size());
 		vector <vector <double>> localPercentileList(fileList.size());
 		int numOfPercentiles = mbins * worldSize;
-		std::cout << numOfPercentiles << std::endl;
+		//std::cout << numOfPercentiles << std::endl;
 		double numDataEachPart = 0.0;
 		//std::cout << "line 182\n";
 
@@ -210,23 +210,18 @@ int main(int argc, char *argv[])
 			dataArrayList.push_back(tempDS);
 		//	std::cout << "line210\n";
 		}
-		std::cout << numOfPercentiles << std::endl;
-
+	
 		//std::cout << "line208\n";
-
-
-		vector <double> localGlobalPercentile(numOfPercentiles-1);
+		
+		vector <double> localGlobalPercentile;
 
 		globalPositionValue(localPercentileList, worldSize, localGlobalPercentile, numOfPercentiles);
-
-//std::cout << numOfPercentiles << std::endl;
-		std::cout << localGlobalPercentile.size() << std::endl;
-//std::cout << "line220\n";
-
+		//std::cout << "line220\n";
+		
 		//  t2=clock()-t1;
 		//t1=t2;
 		// timeData<<"time to read files from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
-
+		
 		//   cout<<dataArray[0].coordinates[0]<<endl;
 
 		//cout<<dataArray[0].coordinates[0]<<endl;
@@ -234,16 +229,16 @@ int main(int argc, char *argv[])
 		//t1=t2;
 		//timeData<<"time for local sort from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
-
 		vector <double> globalPositionValueData;
 
-		vector < vector <double>> localGlobalPercentileList(worldSize);
+		vector < vector <double>> localGlobalPercentileList;
 
 
 
 		// cout<<dataArray[0].coordinates[0]<<endl;
 		std::cout << localGlobalPercentile.size() << std::endl;
 
+		localGlobalPercentileList.push_back(localGlobalPercentile);
 		/* Receive local percentile data from worker nodes */
 
 		recvLocalPercentile(localGlobalPercentile, worldSize, status, localGlobalPercentileList, numOfPercentiles);
@@ -252,7 +247,7 @@ int main(int argc, char *argv[])
 		//	cout << "debug4\n";
 		for (i = 0; i < worldSize; i++)
 		{
-			std::cout << localGlobalPercentileList[i].size() << std::endl;
+		  std::cout << localGlobalPercentileList[i].size() << std::endl;
 		}
 
 		/* Calculate global position data */
@@ -404,7 +399,7 @@ int main(int argc, char *argv[])
 	{
 		MPI_Request request;
 		MPI_Status status;
-		char a;
+		//char a;
 		//int columnToSort;
 		int fileNodeEachSize = 0;
 		int *filesPerNode;
@@ -425,7 +420,7 @@ int main(int argc, char *argv[])
 
 		//std::vector <dataStruct> dataArray;
 		std::vector < std::vector<dataStruct>> dataArrayList;
-		dataArrayList.reserve(fileList.size());
+		//dataArrayList.reserve(fileList.size());
 		vector <double> globalPositionValueData;
 
 		vector <vector <double>> localPercentileList(fileList.size());
@@ -444,13 +439,14 @@ int main(int argc, char *argv[])
 			//temp.resize(dataArrayList[i].size());
 			//tempd.clear();
 			tempd.resize(numOfPercentiles - 1);
-			temp = dataArrayList[i];
-			int arraySize = temp.size();
+			//temp = dataArrayList[i];
+			//int arraySize = temp.size();
 		//	std::cout << "line411\n" << std::endl;
 			//vector <double> localPercentile(mbins * worldSize - 1);
 		//	std::cout << "line413\n" << std::endl;
 			readFile(tempFileName, temp, linesToRead); // read
 		//	std::cout << "line415\n" << std::endl;
+			int arraySize = temp.size();
 			sortPrep(temp, columnToSort, 0, temp.size() - 1); // sort
 		//	std::cout << "line417\n" << std::endl;
 
@@ -458,7 +454,7 @@ int main(int argc, char *argv[])
 			findPercentile(temp, numOfPercentiles, arraySize, columnToSort, tempd, numDataEachPart);
 			localPercentileList[i] = tempd;
 		//	std::cout << "line419\n" << std::endl;
-			dataArrayList[i] = temp;
+			dataArrayList.push_back(temp);
 			//temp.clear();
 
 
@@ -467,16 +463,17 @@ int main(int argc, char *argv[])
 
 		//readFile(fileList[0], dataArray, linesToRead);
 		//sortPrep(dataArray, columnToSort, 0, dataArray.size() - 1);
-
+		vector <double> localGlobalPercentile;
+		globalPositionValue(localPercentileList, worldSize, localGlobalPercentile, numOfPercentiles);
 		//vector <double> localPercentile(mbins * worldSize - 1);
 		//int numOfPercentiles = mbins * worldSize;
 		//int arraySize = dataArray.size();
 		//double numDataEachPart = 0.0;
 		//findPercentile(dataArray, numOfPercentiles, arraySize, columnToSort, localPercentile, numDataEachPart);
-		for (i = 0; i < fileList.size(); i++)
-		{
-			sendLocalPercentile(worldSize, localPercentileList[i], numOfPercentiles);
-		}
+		//for (i = 0; i < fileList.size(); i++)
+		//{
+		sendLocalPercentile(worldSize, localGlobalPercentile, numOfPercentiles);
+			//}
 
 
 		recvGlobalPositionValue(globalPositionValueData);
