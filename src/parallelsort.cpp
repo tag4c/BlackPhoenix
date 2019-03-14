@@ -289,6 +289,13 @@ int main(int argc, char *argv[])
 		}
 		int *boundries;
 		boundries = new int[worldSize + 1];
+		int **boundries2;
+		boundries2 = new int*[filesPerNode[myrank]];
+                for(int i=0;i<filesPerNode[myrank];i++){
+                boundries2[i]=new int[worldSize+1];
+		boundries2[i][0] = 0;
+		boundries2[i][worldSize] = linesToRead;
+                }
 		boundries[0] = 0;
 		boundries[worldSize] = linesToRead;
 		int temp = 0, index = 1;
@@ -304,15 +311,18 @@ int main(int argc, char *argv[])
 			}
 		}
 		MPI_Bcast(boundries, worldSize + 1, MPI_INT, 0, MPI_COMM_WORLD);
-		for (int i = 0; i < worldSize - 1; i++) {
+                
+		for (int i = 0; i < filesPerNode[myrank]; i++) {
+                    for(j=0;j<worldSize-1;j++){
 			//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
-			boundries[i + 1] = posIndexList[boundries[i + 1]];
+			boundries2[i][j+1] = posIndexList[boundries[i]][j+1];
+                     }
 		}
 
 		// for(int i=0;i<worldSize;i++)
 		//cout<<"node "<<i<<" gets "<<boundries[i]<<" to" <<boundries[i+1]<<" from "<<myrank<<endl;
 
-		swapDataHead(worldSize, dataArrayList, myrank, boundries, filesPerNode);
+		swapDataHead(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
 		t2 = clock() - t1;
 		t1 = t2;
 		timeData << "time to send data:" << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
@@ -449,11 +459,19 @@ int main(int argc, char *argv[])
 		int *boundries;
 		boundries = new int[worldSize + 1];
 		MPI_Bcast(boundries, worldSize + 1, MPI_INT, 0, MPI_COMM_WORLD);
-		for (int i = 0; i < worldSize - 1; i++) {
-			//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
-			boundries[i + 1] = posIndexList[boundries[i + 1]];
+		int **boundries2;
+		boundries2 = new int*[filesPerNode[myrank]];
+                for(int i=0;i<filesPerNode[myrank];i++){
+                boundries2[i]=new int[worldSize+1];
+		boundries2[i][0] = 0;
+		boundries2[i][worldSize] = linesToRead;
+                }
+		for (int i = 0; i < filesPerNode[myrank]; i++) {
+		    for(j=0;j<worldSize-1;j++){	//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
+			boundries2[i][j+1] = posIndexList[boundries[i]][j+1];
+                 }
 		}
-		swapDataWorker(worldSize, dataArrayList, myrank, boundries, filesPerNode);
+		swapDataWorker(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
 
 		// ========================================================
 

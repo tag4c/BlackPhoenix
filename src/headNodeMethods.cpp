@@ -170,7 +170,7 @@ void sendGlobalPositionValue(int &arraySize, std::vector <double> &globalPositio
 		MPI_Bcast(&globalPositionValueData.front(), arraySize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 }
 
-void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArray, int &myrank,int *posIndex, int *filesPerNode)
+void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArray, int &myrank,int **posIndex, int *filesPerNode)
 {
 	int blockSize[2] = { 1, 3 };
 	MPI_Datatype MPI_dataStruct[2] = { MPI_LONG_LONG_INT, MPI_DOUBLE };
@@ -219,13 +219,13 @@ void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArr
 
 
                         if(filesPerNode[myrank]-x>0){
-			rStart=posIndex[right]+1;
+			rStart=posIndex[x][right]+1;
 
 			if(right==worldSize-1)
 				rEnd=dataArray.size()-1;
 
 			else 
-				rEnd=posIndex[right+1];
+				rEnd=posIndex[x][right+1];
 
 			rLength=rEnd-rStart+1; 
                          
@@ -236,13 +236,13 @@ void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArr
                         }
 			if(left!=right&&filesPerNode[myrank]-x>0){
 
-				lStart=posIndex[left]+1;
+				lStart=posIndex[j][left]+1;
 
 				if(left==worldSize-1)
 					lEnd=dataArray.size()-1;
 
 				else 
-					lEnd=posIndex[left+1];
+					lEnd=posIndex[x][left+1];
 
 				lLength=lEnd-lStart+1; 
 
@@ -307,7 +307,7 @@ void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArr
 		// copy vector selection
 
                 for(j=0;j<filesPerNode[myrank];j++){
-		for (k = 0; k < posIndex[1]+1; k++)
+		for (k = 0; k < posIndex[j][1]+1; k++)
 		{
 			newData[myrank].push_back(dataArray[j][k]);
 		

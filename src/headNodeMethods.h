@@ -39,4 +39,4 @@ void decodeFilesToRead(int fileEachNodeSize, std::vector <std::vector<int>> &fil
 void sendFilesToRead(int &worldSize, std::vector <std::vector<int>>  &fileEachNode, MPI_Request &request, int &fileEachNodeSize,int *filesPerNode);
 void recvLocalPercentile(std::vector <double> &localPercentile, int &worldSize, MPI_Status &status, std::vector <std::vector <double>> &localPercentileList, int &numOfBins);
 void sendGlobalPositionValue(int &arraySize, std::vector <double> &globalPositionValueData);
-void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArray, int &myrank, int *posIndex, int *filesPerNode);
+void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArray, int &myrank, int **posIndex, int *filesPerNode);
