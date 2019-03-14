@@ -28,6 +28,7 @@
 #include "sperateArray.h"
 #include "headNodeMethods.h"
 #include "workerNodeMethods.h"
+#include "kdTree.h"
 
 
 
@@ -174,27 +175,53 @@ int main(int argc, char *argv[])
 		decodeFilesToRead(fileEachNodeSize, fileEachNode, fileList, path);
 		MPI_Bcast(filesPerNode, worldSize, MPI_INT, 0, MPI_COMM_WORLD);
 		std::vector<std::vector <dataStruct>> dataArrayList;
-		dataArrayList.reserve(fileList.size());
+		//dataArrayList.reserve(fileList.size());
 		vector <vector <double>> localPercentileList(fileList.size());
 		int numOfPercentiles = mbins * worldSize;
+		std::cout << numOfPercentiles << std::endl;
 		double numDataEachPart = 0.0;
+		//std::cout << "line 182\n";
 
+		std::string tempFileName;
 
 		for (i = 0; i < fileList.size(); i++)
 		{
 
-			int arraySize = dataArrayList[i].size();
-			vector <double> localPercentile(mbins * worldSize - 1);
-			readFile(fileList[i], dataArrayList[i], linesToRead); // read
-			sortPrep(dataArrayList[i], columnToSort, 0, dataArrayList[i].size() - 1); // sort
-			findPercentile(dataArrayList[i], numOfPercentiles, arraySize, columnToSort, localPercentileList[i], numDataEachPart);
-		}
+			std::vector<dataStruct> tempDS;
+			std::vector<double> tempd;
+			//std::cout << i << std::endl;
+			//tempd.clear();
+			tempd.resize(numOfPercentiles - 1);
+			//tempDS = dataArrayList[i];
+			
+			//vector <double> localPercentile(mbins * worldSize - 1);
+		//	std::cout << "line189\n" << std::endl;
+			tempFileName = fileList[i];
+			readFile(tempFileName, tempDS, linesToRead); // read
+			int arraySize = tempDS.size();
+		//	std::cout << "line191\n" << std::endl;
+			sortPrep(tempDS, columnToSort, 0, tempDS.size() - 1); // sort
+		//	std::cout << "line193\n" << std::endl;
 
-		vector <double> localGlobalPercentile(numOfPercentiles);
+			//tempd = localPercentileList[i];
+			findPercentile(tempDS, numOfPercentiles, arraySize, columnToSort, tempd, numDataEachPart);
+			localPercentileList[i] = tempd;
+		//	std::cout << "line 205\n";
+			dataArrayList.push_back(tempDS);
+		//	std::cout << "line210\n";
+		}
+		std::cout << numOfPercentiles << std::endl;
+
+		//std::cout << "line208\n";
+
+
+		vector <double> localGlobalPercentile(numOfPercentiles-1);
 
 		globalPositionValue(localPercentileList, worldSize, localGlobalPercentile, numOfPercentiles);
 
-
+//std::cout << numOfPercentiles << std::endl;
+		std::cout << localGlobalPercentile.size() << std::endl;
+//std::cout << "line220\n";
 
 		//  t2=clock()-t1;
 		//t1=t2;
@@ -215,16 +242,22 @@ int main(int argc, char *argv[])
 
 
 		// cout<<dataArray[0].coordinates[0]<<endl;
-
+		std::cout << localGlobalPercentile.size() << std::endl;
 
 		/* Receive local percentile data from worker nodes */
 
 		recvLocalPercentile(localGlobalPercentile, worldSize, status, localGlobalPercentileList, numOfPercentiles);
+		std::cout << "line246\n";
+		int numOfBins = numOfPercentiles-1;
 		//	cout << "debug4\n";
+		for (i = 0; i < worldSize; i++)
+		{
+			std::cout << localGlobalPercentileList[i].size() << std::endl;
+		}
 
 		/* Calculate global position data */
 
-		globalPositionValue(localGlobalPercentileList, worldSize, globalPositionValueData, numOfPercentiles);
+		globalPositionValue(localGlobalPercentileList, worldSize, globalPositionValueData, numOfBins);
 		cout << "debug5\n";
 
 		int arraySize = globalPositionValueData.size();
@@ -291,11 +324,11 @@ int main(int argc, char *argv[])
 		boundries = new int[worldSize + 1];
 		int **boundries2;
 		boundries2 = new int*[filesPerNode[myrank]];
-                for(int i=0;i<filesPerNode[myrank];i++){
-                boundries2[i]=new int[worldSize+1];
-		boundries2[i][0] = 0;
-		boundries2[i][worldSize] = linesToRead;
-                }
+		for (int i = 0; i < filesPerNode[myrank]; i++) {
+			boundries2[i] = new int[worldSize + 1];
+			boundries2[i][0] = 0;
+			boundries2[i][worldSize] = linesToRead;
+		}
 		boundries[0] = 0;
 		boundries[worldSize] = linesToRead;
 		int temp = 0, index = 1;
@@ -311,12 +344,12 @@ int main(int argc, char *argv[])
 			}
 		}
 		MPI_Bcast(boundries, worldSize + 1, MPI_INT, 0, MPI_COMM_WORLD);
-                
+
 		for (int i = 0; i < filesPerNode[myrank]; i++) {
-                    for(j=0;j<worldSize-1;j++){
-			//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
-			boundries2[i][j+1] = posIndexList[boundries[i]][j+1];
-                     }
+			for (j = 0; j < worldSize - 1; j++) {
+				//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
+				boundries2[i][j + 1] = posIndexList[boundries[i]][j + 1];
+			}
 		}
 
 		// for(int i=0;i<worldSize;i++)
@@ -371,6 +404,7 @@ int main(int argc, char *argv[])
 	{
 		MPI_Request request;
 		MPI_Status status;
+		char a;
 		//int columnToSort;
 		int fileNodeEachSize = 0;
 		int *filesPerNode;
@@ -387,6 +421,8 @@ int main(int argc, char *argv[])
 
 		MPI_Bcast(filesPerNode, worldSize, MPI_INT, 0, MPI_COMM_WORLD);
 
+		//std::cout << "line 393\n";
+
 		//std::vector <dataStruct> dataArray;
 		std::vector < std::vector<dataStruct>> dataArrayList;
 		dataArrayList.reserve(fileList.size());
@@ -396,14 +432,38 @@ int main(int argc, char *argv[])
 		int numOfPercentiles = mbins * worldSize;
 		double numDataEachPart = 0.0;
 
+		std::string tempFileName;
+		//std::cout << "line 403\n";
 		for (i = 0; i < fileList.size(); i++)
 		{
-			int arraySize = dataArrayList[i].size();
-			vector <double> localPercentile(mbins * worldSize - 1);
-			readFile(fileList[i], dataArrayList[i], linesToRead); // read
-			sortPrep(dataArrayList[i], columnToSort, 0, dataArrayList[i].size() - 1); // sort
-			findPercentile(dataArrayList[i], numOfPercentiles, arraySize, columnToSort, localPercentileList[i], numDataEachPart);
+			std::vector<dataStruct> temp;
+			std::vector<double> tempd;
+			tempFileName = fileList[i];
+		//	std::cout << "Worker: " <<  i << std::endl;
+			//temp.clear();
+			//temp.resize(dataArrayList[i].size());
+			//tempd.clear();
+			tempd.resize(numOfPercentiles - 1);
+			temp = dataArrayList[i];
+			int arraySize = temp.size();
+		//	std::cout << "line411\n" << std::endl;
+			//vector <double> localPercentile(mbins * worldSize - 1);
+		//	std::cout << "line413\n" << std::endl;
+			readFile(tempFileName, temp, linesToRead); // read
+		//	std::cout << "line415\n" << std::endl;
+			sortPrep(temp, columnToSort, 0, temp.size() - 1); // sort
+		//	std::cout << "line417\n" << std::endl;
+
+
+			findPercentile(temp, numOfPercentiles, arraySize, columnToSort, tempd, numDataEachPart);
+			localPercentileList[i] = tempd;
+		//	std::cout << "line419\n" << std::endl;
+			dataArrayList[i] = temp;
+			//temp.clear();
+
+
 		}
+		std::cout << "line 422\n";
 
 		//readFile(fileList[0], dataArray, linesToRead);
 		//sortPrep(dataArray, columnToSort, 0, dataArray.size() - 1);
@@ -461,15 +521,15 @@ int main(int argc, char *argv[])
 		MPI_Bcast(boundries, worldSize + 1, MPI_INT, 0, MPI_COMM_WORLD);
 		int **boundries2;
 		boundries2 = new int*[filesPerNode[myrank]];
-                for(int i=0;i<filesPerNode[myrank];i++){
-                boundries2[i]=new int[worldSize+1];
-		boundries2[i][0] = 0;
-		boundries2[i][worldSize] = linesToRead;
-                }
 		for (int i = 0; i < filesPerNode[myrank]; i++) {
-		    for(j=0;j<worldSize-1;j++){	//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
-			boundries2[i][j+1] = posIndexList[boundries[i]][j+1];
-                 }
+			boundries2[i] = new int[worldSize + 1];
+			boundries2[i][0] = 0;
+			boundries2[i][worldSize] = linesToRead;
+		}
+		for (int i = 0; i < filesPerNode[myrank]; i++) {
+			for (j = 0; j < worldSize - 1; j++) {	//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
+				boundries2[i][j + 1] = posIndexList[boundries[i]][j + 1];
+			}
 		}
 		swapDataWorker(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
 

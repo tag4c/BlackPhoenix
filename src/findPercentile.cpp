@@ -7,6 +7,7 @@
 // */ End variable statement
 
 #include "findPercentile.h"
+#include <iostream>
 
 #define Int int
 #define Double double
@@ -28,6 +29,7 @@ void findPercentile(std::vector<dataStruct>& dataArray, Int& numPercentile, Int&
   // Calculate the percentiles
   for(i=1;i<numPercentile;i++)
     {
+     // std::cout << i << "\n";
       Double numDataCurrentPart = numDataEachPart * i;
       position = floor(numDataCurrentPart);
       ratio = numDataCurrentPart - position;
