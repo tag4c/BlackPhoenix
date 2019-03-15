@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 			}
 		}
 		//	cout << "debug7\n";
-		std::cout << "bin sizes[0]: " << binSizes[0] << std::endl;
+		//std::cout << "bin sizes[0]: " << binSizes[0] << std::endl;
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		for (int i = 1; i < worldSize; i++) {
@@ -281,36 +281,37 @@ int main(int argc, char *argv[])
 			if ((temp + binSizes[i]) < ((linesToRead * scale * fileNum) / worldSize)) {
 				temp = temp + binSizes[i];
 			} else {
-				std::cout << "setting boundary...\n";
+			//	std::cout << "setting boundary...\n";
 				boundries[index] = i - 1;
 				//cout << "node " << index - 1 << " will get " << temp << " elements\n";
 				index++;
 				temp = binSizes[i];
 			}
 		}
-		for (i = 0; i < worldSize; i++)
-		{
-			std::cout << myrank << " boundaries " << boundries[i] << std::endl;
-		}
-		std::cout << "line351\n";
+		//for (i = 0; i < worldSize; i++)
+		//{
+		//	std::cout << myrank << " boundaries " << boundries[i] << std::endl;
+	//	}
+		//std::cout << "line351\n";
 		MPI_Bcast(boundries, worldSize + 1, MPI_INT, 0, MPI_COMM_WORLD);
-		std::cout << "line353\n";
+		//std::cout << "line353\n";
 		for (int i = 0; i < filesPerNode[myrank]; i++) {
 			for (j = 0; j < worldSize - 1; j++) {
 				//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
-				boundries2[i][j + 1] = posIndexList[boundries[i]][j + 1];
+				boundries2[i][j + 1] = posIndexList[i][boundries[j + 1]];
+                //                std::cout<<"boundries "<<i <<" "<<j+1<<" "<<boundries2[i][j+1]<<std::endl;
 			}
 		}
 
-		std::cout << "line363\n";
+		//std::cout << "line363\n";
 		MPI_Barrier(MPI_COMM_WORLD);
 		swapDataHead(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
-		std::cout << "line365\n";
 		t2 = clock() - t1;
 		t1 = t2;
 		timeData << "time to send data:" << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
 
 		sortPrep(dataArrayList[0], columnToSort, 0, dataArrayList[0].size() - 1);
+		std::cout << "done\n";
 		t2 = clock() - t1;
 		t1 = t2;
 		timeData << "final sort:" << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
@@ -451,7 +452,7 @@ int main(int argc, char *argv[])
 			//	std::cout << "binSize[" << i << "]" << binSizes[i] << std::endl;
 			}
 		}
-		std::cout << "line528\n";
+		//std::cout << "line528\n";
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Send(binSizes, numOfPercentiles, MPI_INT, 0, 0, MPI_COMM_WORLD);
 		int *boundries;
@@ -461,7 +462,7 @@ int main(int argc, char *argv[])
 		int **boundries2;
 		//std::cout << myrank << " " << filesPerNode[myrank] << std::endl;
 		boundries2 = new int*[filesPerNode[myrank]];
-		std::cout << myrank << " " << posIndexList[myrank].size() << std::endl;
+		//std::cout << myrank << " " << posIndexList[myrank].size() << std::endl;
 		for (int i = 0; i < filesPerNode[myrank]; i++) {
 
 			boundries2[i] = new int[worldSize + 1];
@@ -469,15 +470,16 @@ int main(int argc, char *argv[])
 			boundries2[i][worldSize] = linesToRead;
 		}
 		for (int i = 0; i < filesPerNode[myrank]; i++) {
-			std::cout << i << std::endl;
-			std::cout << myrank << " : " << posIndexList[boundries[i]].size() << std::endl;
+		//	std::cout << i << std::endl;
+		//	std::cout << myrank << " : " << posIndexList[boundries[i]].size() << std::endl;
 			for (j = 0; j < worldSize - 1; j++) {	//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
 
-				boundries2[i][j + 1] = posIndexList[boundries[i]][j + 1];
+				boundries2[i][j + 1] = posIndexList[i][boundries[j + 1]];
+                                //std::cout<<"boundries "<<i <<" "<<j+1<<" "<<boundries2[i][j+1]<<std::endl;
 			}
 
 		}
-		std::cout << "line546\n";
+		//std::cout << "line546\n";
 		MPI_Barrier(MPI_COMM_WORLD);
 		swapDataWorker(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
 

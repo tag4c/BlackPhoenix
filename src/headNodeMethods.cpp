@@ -207,6 +207,8 @@ void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArr
                 vector <dataStruct> tempDataL;
                for(k=0;k<=max;k++){       
                 x=0;
+                right=myrank;
+                left=myrank;
 		while(x<=(worldSize)/2){
 
 			right++;
@@ -218,42 +220,42 @@ void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArr
 				left=worldSize-1;
 
 
-                        if(filesPerNode[myrank]-x>0){
-			rStart=posIndex[x][right]+1;
+                        if(filesPerNode[myrank]-k>0){
+			rStart=posIndex[k][right]+1;
 
 			if(right==worldSize-1)
-				rEnd=dataArray.size()-1;
+				rEnd=dataArray[k].size()-1;
 
 			else 
-				rEnd=posIndex[x][right+1];
+				rEnd=posIndex[k][right+1];
 
 			rLength=rEnd-rStart+1; 
                          
 
-		       //cout<<myrank<<" sending "<<rLength<<" to "<<right << " from " << rStart << " to  " <<rEnd <<endl;
+//		       cout<<myrank<<" sending "<<rLength<<" to "<<right << " from " << rStart << " to  " <<rEnd <<endl;
 			MPI_Isend(&rLength,1,MPI_INT,right,0,MPI_COMM_WORLD,&request0);
-			MPI_Isend(&dataArray.at(rStart), rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);
+			MPI_Isend(&dataArray[k][rStart], rLength, MPI_dataArray, right, 0, MPI_COMM_WORLD, &request1);
                         }
-			if(left!=right&&filesPerNode[myrank]-x>0){
+			if(left!=right&&filesPerNode[myrank]-k>0){
 
-				lStart=posIndex[j][left]+1;
+				lStart=posIndex[k][left]+1;
 
 				if(left==worldSize-1)
-					lEnd=dataArray.size()-1;
+					lEnd=dataArray[k].size()-1;
 
 				else 
-					lEnd=posIndex[x][left+1];
+					lEnd=posIndex[k][left+1];
 
 				lLength=lEnd-lStart+1; 
 
+		//	       cout<<myrank<<" sending "<<lLength<<" to "<<left << " " << lStart << " " <<lEnd <<endl;
 				MPI_Isend(&lLength,1,MPI_INT,left,0,MPI_COMM_WORLD,&request2);
-				MPI_Isend(&dataArray.at(lStart), lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);	
-//			       cout<<myrank<<" sending "<<lLength<<" to "<<left << " " << lStart << " " <<lEnd <<endl;
+				MPI_Isend(&dataArray[k][lStart], lLength, MPI_dataArray, left, 0, MPI_COMM_WORLD, &request3);	
 
 			
 
 			}
-                        if(filesPerNode[right]-x>0){
+                        if(filesPerNode[right]-k>0){
 
 			MPI_Recv(&rNewSize,1,MPI_INT,right,0,MPI_COMM_WORLD,&status0);
 
@@ -268,12 +270,12 @@ void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArr
 			tempDataR.resize(0);
     
                        } 
-			if(left!=right&&filesPerNode[left]-x>0){
+			if(left!=right&&filesPerNode[left]-k>0){
 
 				MPI_Recv(&lNewSize,1,MPI_INT,left,0,MPI_COMM_WORLD,&status2);
 
-  	  		        tempDataL.reserve(rNewSize); 
-			        tempDataL.resize(rNewSize);
+  	  		        tempDataL.reserve(lNewSize); 
+			        tempDataL.resize(lNewSize);
 
 				MPI_Recv(&tempDataL.front(),lNewSize,MPI_dataArray,left,0,MPI_COMM_WORLD,&status3);
                                 for(i=0;i<lNewSize;i++){
@@ -284,11 +286,11 @@ void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArr
 
 			}
 
-                        if(filesPerNode[myrank]-x>0){
+                        if(filesPerNode[myrank]-k>0){
 			MPI_Wait(&request0,&status0);
 			MPI_Wait(&request1,&status1);
                         }
-			if(left!=right&&filesPerNode[myrank]-x>0){
+			if(left!=right&&filesPerNode[myrank]-k>0){
 
 				MPI_Wait(&request2,&status2);
 				MPI_Wait(&request3,&status3); 
@@ -305,7 +307,6 @@ void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArr
 }
 
 		// copy vector selection
-
                 for(j=0;j<filesPerNode[myrank];j++){
 		for (k = 0; k < posIndex[j][1]+1; k++)
 		{
@@ -316,9 +317,15 @@ void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArr
 
 		// clear old data
 
+                //cout <<myrank<<" made it\n";
+	        for (k = 0; k < dataArray.size(); k++){
+		dataArray[k].clear();
+		dataArray[k].shrink_to_fit();
+                }
 		dataArray.clear();
 		dataArray.shrink_to_fit();
-
+         	dataArray.reserve(1); 
+		dataArray.resize(1);
 		// make new vector from smaller ones
 
 		for (j = 0; j < worldSize; j++)
