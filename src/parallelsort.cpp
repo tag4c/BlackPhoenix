@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
 			if ((temp + binSizes[i]) < ((linesToRead * scale * fileNum) / worldSize)) {
 				temp = temp + binSizes[i];
 			} else {
-			//	std::cout << "setting boundary...\n";
+				//	std::cout << "setting boundary...\n";
 				boundries[index] = i - 1;
 				//cout << "node " << index - 1 << " will get " << temp << " elements\n";
 				index++;
@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
 		//for (i = 0; i < worldSize; i++)
 		//{
 		//	std::cout << myrank << " boundaries " << boundries[i] << std::endl;
-	//	}
+		//	}
 		//std::cout << "line351\n";
 		MPI_Bcast(boundries, worldSize + 1, MPI_INT, 0, MPI_COMM_WORLD);
 		//std::cout << "line353\n";
@@ -300,7 +300,7 @@ int main(int argc, char *argv[])
 			for (j = 0; j < worldSize - 1; j++) {
 				//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
 				boundries2[i][j + 1] = posIndexList[i][boundries[j + 1]];
-                //                std::cout<<"boundries "<<i <<" "<<j+1<<" "<<boundries2[i][j+1]<<std::endl;
+				//                std::cout<<"boundries "<<i <<" "<<j+1<<" "<<boundries2[i][j+1]<<std::endl;
 			}
 		}
 
@@ -323,7 +323,7 @@ int main(int argc, char *argv[])
 		// write new files
 
 		//std::cout << dataArrayList[0].size()<< std::endl;
-
+		/*
 		for (j = 0; j < 1; j++)
 		{
 			int linecount = 0;
@@ -345,12 +345,49 @@ int main(int argc, char *argv[])
 			}
 
 		}
-
+*/
 
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		t2 = clock() - start;
 		timeData << "final time from head node: " << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
+
+		// Build KD Tree of sorted Data
+
+		/* Create KD Tree */
+
+		int layers = ceil(log2(1.0 * dataArrayList[0].size())) + 1;
+		int treeMemSize = pow(2, layers);
+
+		node *tree;
+		tree = new node[treeMemSize];
+
+		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
+
+		double *sp;
+		sp = new double [3];
+
+		sp[0] = 0.0;
+		sp[1] = 0.0;
+		sp[2] = 0.0;
+
+		double radius = 0.1;
+
+		vector<int> neighPoints(0);
+
+		kdTree_search(tree, radius, sp, treeMemSize - 1, neighPoints);
+
+		std::cout << "Node: " << myrank << " Number of Points with radius (" << radius << ") :" << neighPoints.size() << std::endl;
+		verifySearch(dataArrayList[0], radius, sp);
+
+		// Read in 501
+
+		// for each line in 501, we need to find the number of points in the kd tree within a certain radius
+
+		// print some stuff to file somewhere..
+
+
+
 
 	}
 	/* Slave nodes (All others) */
@@ -414,7 +451,7 @@ int main(int argc, char *argv[])
 			localPercentileList[i] = tempd;
 			//	std::cout << "line419\n" << std::endl;
 			dataArrayList.push_back(temp);
-			
+
 
 
 		}
@@ -455,7 +492,7 @@ int main(int argc, char *argv[])
 				else
 					binSizes[i] += linesToRead - posIndexList[j][i - 1];
 
-			//	std::cout << "binSize[" << i << "]" << binSizes[i] << std::endl;
+				//	std::cout << "binSize[" << i << "]" << binSizes[i] << std::endl;
 			}
 		}
 		//std::cout << "line528\n";
@@ -476,12 +513,12 @@ int main(int argc, char *argv[])
 			boundries2[i][worldSize] = linesToRead;
 		}
 		for (int i = 0; i < filesPerNode[myrank]; i++) {
-		//	std::cout << i << std::endl;
-		//	std::cout << myrank << " : " << posIndexList[boundries[i]].size() << std::endl;
+			//	std::cout << i << std::endl;
+			//	std::cout << myrank << " : " << posIndexList[boundries[i]].size() << std::endl;
 			for (j = 0; j < worldSize - 1; j++) {	//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
 
 				boundries2[i][j + 1] = posIndexList[i][boundries[j + 1]];
-                                //std::cout<<"boundries "<<i <<" "<<j+1<<" "<<boundries2[i][j+1]<<std::endl;
+				//std::cout<<"boundries "<<i <<" "<<j+1<<" "<<boundries2[i][j+1]<<std::endl;
 			}
 
 		}
@@ -494,27 +531,55 @@ int main(int argc, char *argv[])
 		// sort
 
 		sortPrep(dataArrayList[0], columnToSort, 0, dataArrayList[0].size() - 1);
+		/*
+				for (j = 0; j < 1; j++)
+				{
+					std::string filepath = to_string(myrank) + "output.txt";
+					std::ofstream file(filepath);
+					int linecount = 0;
+
+					if (file.is_open())
+					{
+						while ( linecount < dataArrayList[j].size() )
+						{
+							file << std::setprecision(15) << dataArrayList[j][linecount].coordinates[0] << " " << dataArrayList[j][linecount].coordinates[1] << " " <<  dataArrayList[j][linecount].coordinates[2] <<  "\n";
+							linecount++;
+						}
+
+						file.close();
+
+					}
+
+				}
+		*/
+
+		int layers = ceil(log2(1.0 * dataArrayList[0].size())) + 1;
+		int treeMemSize = pow(2, layers);
+
+		node *tree;
+		tree = new node[treeMemSize];
+
+		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
+
+		double *sp;
+		sp = new double [3];
+
+		sp[0] = 0.0;
+		sp[1] = 0.0;
+		sp[2] = 0.0;
+
+		double radius = 0.1;
+
+		vector<int> neighPoints(0);
+
+		kdTree_search(tree, radius, sp, treeMemSize - 1, neighPoints);
+
+		std::cout << "Node: " << myrank << " Number of Points with radius (" << radius << ") :" << neighPoints.size() << std::endl;
+
+		verifySearch(dataArrayList[0], radius, sp);
 
 		// write new files
-		for (j = 0; j < 1; j++)
-		{
-			std::string filepath = to_string(myrank) + "output.txt";
-			std::ofstream file(filepath);
-			int linecount = 0;
 
-			if (file.is_open())
-			{
-				while ( linecount < dataArrayList[j].size() )
-				{
-					file << std::setprecision(15) << dataArrayList[j][linecount].coordinates[0] << "\n";
-					linecount++;
-				}
-
-				file.close();
-
-			}
-
-		}
 
 		MPI_Barrier(MPI_COMM_WORLD);
 	}

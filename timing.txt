@@ -1,0 +1,4 @@
+time to find where data should go:0.02s
+time to send data:0.01s
+final sort:0.02s
+final time from head node: 0.05s
