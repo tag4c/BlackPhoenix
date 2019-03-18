@@ -162,6 +162,7 @@ int main(int argc, char *argv[])
 			int arraySize = tempDS.size();
 			//	std::cout << "line191\n" << std::endl;
 			sortPrep(tempDS, columnToSort, 0, tempDS.size() - 1); // sort
+			//std::cout << "size of tempDS: " << tempDS.size() << std::endl;
 			//	std::cout << "line193\n" << std::endl;
 
 			//tempd = localPercentileList[i];
@@ -305,6 +306,9 @@ int main(int argc, char *argv[])
 
 		//std::cout << "line363\n";
 		MPI_Barrier(MPI_COMM_WORLD);
+
+
+
 		swapDataHead(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
 		t2 = clock() - t1;
 		t1 = t2;
@@ -318,10 +322,12 @@ int main(int argc, char *argv[])
 
 		// write new files
 
-		for (j = 0; j < fileList.size(); j++)
+		//std::cout << dataArrayList[0].size()<< std::endl;
+
+		for (j = 0; j < 1; j++)
 		{
 			int linecount = 0;
-			std::string filepath = to_string(myrank) + "file" + to_string(j) + "output.txt";
+			std::string filepath = to_string(myrank) +  "output.txt";
 			std::ofstream file(filepath);
 			if (file.is_open())
 			{
@@ -481,6 +487,8 @@ int main(int argc, char *argv[])
 		}
 		//std::cout << "line546\n";
 		MPI_Barrier(MPI_COMM_WORLD);
+
+
 		swapDataWorker(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
 
 		// sort
@@ -488,9 +496,9 @@ int main(int argc, char *argv[])
 		sortPrep(dataArrayList[0], columnToSort, 0, dataArrayList[0].size() - 1);
 
 		// write new files
-		for (j = 0; j < fileList.size(); j++)
+		for (j = 0; j < 1; j++)
 		{
-			std::string filepath = to_string(myrank) + "file" + to_string(j) + "output.txt";
+			std::string filepath = to_string(myrank) + "output.txt";
 			std::ofstream file(filepath);
 			int linecount = 0;
 
