@@ -345,10 +345,10 @@ int main(int argc, char *argv[])
 			}
 
 		}
-*/
+		*/
 
 
-		MPI_Barrier(MPI_COMM_WORLD);
+
 		t2 = clock() - start;
 		timeData << "final time from head node: " << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
 
@@ -358,35 +358,73 @@ int main(int argc, char *argv[])
 
 		int layers = ceil(log2(1.0 * dataArrayList[0].size())) + 1;
 		int treeMemSize = pow(2, layers);
-
+		std::cout << treeMemSize << std::endl;
 		node *tree;
 		tree = new node[treeMemSize];
 
 		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
+		std::cout << "line366\n";
+		/*
+				double *sp;
+				sp = new double [3];
+
+				sp[0] = 0.0;
+				sp[1] = 0.0;
+				sp[2] = 0.0;
+
+				double radius = 0.1;
+
+				vector<int> neighPoints(0);
+
+				kdTree_search(tree, radius, sp, treeMemSize - 1, neighPoints);
+
+				std::cout << "Node: " << myrank << " Number of Points with radius (" << radius << ") :" << neighPoints.size() << std::endl; */
+		//verifySearch(dataArrayList[0], radius, sp);
+
+		// Read in 501
+
+		std::vector<dataStruct> searchDataArray;
+		std::string filename = "/home/tag4c/datafile00501.bin";
+
+		readFile(filename, searchDataArray, linesToRead);
+
+
+
+		// sort it
+		sortPrep(searchDataArray, columnToSort, 0, linesToRead);
+		//std::cout << searchDataArray[0].coordinates[0] << std::endl;
+		// send out 501
+		MPI_Bcast(&searchDataArray.front(), linesToRead, MPI_dataArray, 0, MPI_COMM_WORLD);
+
+		std::cout << myrank << ": done\n";
 
 		double *sp;
 		sp = new double [3];
-
-		sp[0] = 0.0;
-		sp[1] = 0.0;
-		sp[2] = 0.0;
-
 		double radius = 0.1;
+		vector<vector<int>> neighPoints(linesToRead);
+		vector<int> tempNeigh;
+		std::cout << "line406\n";
+		for (i = 0; i < searchDataArray.size(); i++)
+		{
+			std::cout << i << std::endl;
+			sp[0] = searchDataArray[i].coordinates[0];
+			sp[1] = searchDataArray[i].coordinates[1];
+			sp[2] = searchDataArray[i].coordinates[2];
+			kdTree_search(tree, radius, sp, treeMemSize - 1, tempNeigh);
+			neighPoints[i] = tempNeigh;
+		}
 
-		vector<int> neighPoints(0);
+		std::cout << neighPoints[0].size() << std::endl;
 
-		kdTree_search(tree, radius, sp, treeMemSize - 1, neighPoints);
 
-		std::cout << "Node: " << myrank << " Number of Points with radius (" << radius << ") :" << neighPoints.size() << std::endl;
-		verifySearch(dataArrayList[0], radius, sp);
-
-		// Read in 501
+		// do something.. search...
 
 		// for each line in 501, we need to find the number of points in the kd tree within a certain radius
 
 		// print some stuff to file somewhere..
-
-
+		std::cout <<"line423\n";
+		MPI_Barrier(MPI_COMM_WORLD);
+		std::cout <<"line425\n";
 
 
 	}
@@ -560,8 +598,9 @@ int main(int argc, char *argv[])
 		tree = new node[treeMemSize];
 
 		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
+		std::cout << "line581\n";
 
-		double *sp;
+		/*double *sp;
 		sp = new double [3];
 
 		sp[0] = 0.0;
@@ -574,14 +613,46 @@ int main(int argc, char *argv[])
 
 		kdTree_search(tree, radius, sp, treeMemSize - 1, neighPoints);
 
-		std::cout << "Node: " << myrank << " Number of Points with radius (" << radius << ") :" << neighPoints.size() << std::endl;
+		std::cout << "Node: " << myrank << " Number of Points with radius (" << radius << ") :" << neighPoints.size() << std::endl;*/
 
-		verifySearch(dataArrayList[0], radius, sp);
+		// Receive data from head node in file 501.
+		std::vector<dataStruct> searchDataArray;
+		searchDataArray.reserve(linesToRead);
+		searchDataArray.resize(linesToRead);
+
+
+		MPI_Bcast(&searchDataArray.front(), linesToRead, MPI_dataArray, 0, MPI_COMM_WORLD);
+		std::cout << myrank << ": done\n";
+		//searchDataArray.resize(linesToRead);
+		//std::cout << searchDataArray[0].coordinates[0] << std::endl;
+
+		// call kdtree_search on every point.
+		double *sp;
+		sp = new double [3];
+		double radius = 0.1;
+		vector<vector<int>> neighPoints(linesToRead);
+		vector<int> tempNeigh;
+
+		/*for (i = 0; i < searchDataArray.size(); i++)
+		{
+			sp[0] = searchDataArray[i].coordinates[0];
+			sp[1] = searchDataArray[i].coordinates[1];
+			sp[2] = searchDataArray[i].coordinates[2];
+			kdTree_search(tree, radius, sp, treeMemSize - 1, tempNeigh);
+			neighPoints[i] = tempNeigh;
+		}
+		std::cout << neighPoints[0].size() << std::endl;*/
+
+		// do someother stuff.
+
+		//verifySearch(dataArrayList[0], radius, sp);
 
 		// write new files
 
+		std::cout << "line633\n";
 
 		MPI_Barrier(MPI_COMM_WORLD);
+		std::cout << "line636\n";
 	}
 
 	MPI_Type_free(&MPI_dataArray); // clean up
