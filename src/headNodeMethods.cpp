@@ -80,7 +80,7 @@ void assignFilesToRead(std::string &dirpath, int worldSize, std::vector <std::ve
 		{
 			tmp = dirList[j];
 			temp.push_back(tmp);
-			//std::cout << "Assigning file: " << tmp << " to node: " << i << std::endl;
+			std::cout << "Assigning file: " << tmp << " to node: " << i << std::endl;
 			fileCount++;
 		}
 

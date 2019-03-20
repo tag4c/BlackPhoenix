@@ -122,14 +122,14 @@ int main(int argc, char *argv[])
 		std::vector <std::vector<int>> fileEachNode;
 
 		assignFilesToRead(dirpath, worldSize, fileEachNode); // determine number of files each node gets to read.
-
+		std::cout << "line125\n";
 		sendFilesToRead(worldSize, fileEachNode, request, fileEachNodeSize, filesPerNode);
-
+		std::cout << "line127\n";
 		std::vector <std::string> fileList(fileEachNodeSize);
 
 
 		decodeFilesToRead(fileEachNodeSize, fileEachNode, fileList, path);
-
+		std::cout << "line132\n";
 		filesPerNode[0] = fileList.size();
 		for (int i = 0; i < worldSize; i++) {
 			fileNum = fileNum + filesPerNode[i];
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 		//std::cout << "line 182\n";
 
 		std::string tempFileName;
-
+		std::cout << "line147\n";
 		for (i = 0; i < fileList.size(); i++)
 		{
 
@@ -156,29 +156,30 @@ int main(int argc, char *argv[])
 			//tempDS = dataArrayList[i];
 
 			//vector <double> localPercentile(mbins * worldSize - 1);
-			//	std::cout << "line189\n" << std::endl;
+			std::cout << "line159\n" << std::endl;
 			tempFileName = fileList[i];
+			std::cout << tempFileName << std::endl;
 			readFile(tempFileName, tempDS, linesToRead); // read
 			int arraySize = tempDS.size();
-			//	std::cout << "line191\n" << std::endl;
+			std::cout << "line163\n" << std::endl;
 			sortPrep(tempDS, columnToSort, 0, tempDS.size() - 1); // sort
 			//std::cout << "size of tempDS: " << tempDS.size() << std::endl;
-			//	std::cout << "line193\n" << std::endl;
+			std::cout << "line166\n" << std::endl;
 
 			//tempd = localPercentileList[i];
 			findPercentile(tempDS, numOfPercentiles, arraySize, columnToSort, tempd, numDataEachPart);
 			localPercentileList[i] = tempd;
-			//	std::cout << "line 205\n";
+			std::cout << "line 171\n";
 			dataArrayList.push_back(tempDS);
 			//	std::cout << "line210\n";
 		}
 
-		//std::cout << "line208\n";
+		std::cout << "line208\n";
 
 		vector <double> localGlobalPercentile;
 
 		globalPositionValue(localPercentileList, worldSize, localGlobalPercentile, numOfPercentiles);
-		//std::cout << "line220\n";
+		std::cout << "line220\n";
 
 		vector <double> globalPositionValueData;
 
@@ -363,6 +364,8 @@ int main(int argc, char *argv[])
 		tree = new node[treeMemSize];
 
 		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
+		MPI_Finalize();
+		exit(0);
 		std::cout << "line366\n";
 		/*
 				double *sp;
@@ -422,9 +425,9 @@ int main(int argc, char *argv[])
 		// for each line in 501, we need to find the number of points in the kd tree within a certain radius
 
 		// print some stuff to file somewhere..
-		std::cout <<"line423\n";
+		std::cout << "line423\n";
 		MPI_Barrier(MPI_COMM_WORLD);
-		std::cout <<"line425\n";
+		std::cout << "line425\n";
 
 
 	}
@@ -468,6 +471,7 @@ int main(int argc, char *argv[])
 			std::vector<dataStruct> temp;
 			std::vector<double> tempd;
 			tempFileName = fileList[i];
+			std::cout << myrank << ":" << i<<std::endl;
 			//	std::cout << "Worker: " <<  i << std::endl;
 			//temp.clear();
 			//temp.resize(dataArrayList[i].size());
@@ -591,6 +595,8 @@ int main(int argc, char *argv[])
 				}
 		*/
 
+
+
 		int layers = ceil(log2(1.0 * dataArrayList[0].size())) + 1;
 		int treeMemSize = pow(2, layers);
 
@@ -598,7 +604,9 @@ int main(int argc, char *argv[])
 		tree = new node[treeMemSize];
 
 		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
-		std::cout << "line581\n";
+		MPI_Finalize();
+		exit(0);
+		std::cout << myrank << ": line581\n";
 
 		/*double *sp;
 		sp = new double [3];

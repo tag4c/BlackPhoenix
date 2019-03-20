@@ -9,6 +9,7 @@ void sortPrep(vector<dataStruct> &data,int column, int left, int right){
 	tmp =(dataStruct *) malloc((size)*sizeof(dataStruct));
 	//begin recursive sort
 	sort(data,tmp,column,left,right);
+    free(tmp);
 
 }
  
