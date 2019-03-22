@@ -119,16 +119,16 @@ int main(int argc, char *argv[])
 		timeData.open("timing.txt");
 
 		std::string dirpath = path;
-		std::vector <std::vector<int>> fileEachNode;
-
+		std::vector <std::vector<std::string>> fileEachNode(worldSize);
+		std::cout << "calling assign files to read\n";
 		assignFilesToRead(dirpath, worldSize, fileEachNode); // determine number of files each node gets to read.
 
-		sendFilesToRead(worldSize, fileEachNode, request, fileEachNodeSize, filesPerNode);
+	//	sendFilesToRead(worldSize, fileEachNode, request, fileEachNodeSize, filesPerNode);
 
 		std::vector <std::string> fileList(fileEachNodeSize);
 
 
-		decodeFilesToRead(fileEachNodeSize, fileEachNode, fileList, path);
+		//decodeFilesToRead(fileEachNodeSize, fileEachNode, fileList, path);
 
 		filesPerNode[0] = fileList.size();
 		for (int i = 0; i < worldSize; i++) {
