@@ -123,11 +123,15 @@ int main(int argc, char *argv[])
 		std::cout << "calling assign files to read\n";
 		assignFilesToRead(dirpath, worldSize, fileEachNode); // determine number of files each node gets to read.
 
-	//	sendFilesToRead(worldSize, fileEachNode, request, fileEachNodeSize, filesPerNode);
+		sendFilesToRead(worldSize, fileEachNode, request, fileEachNodeSize, filesPerNode);
 
-		std::vector <std::string> fileList(fileEachNodeSize);
+		std::cout << "Sending assigned files ...\n";
+
+		std::vector <std::string> fileList = fileEachNode[0];
+		//std::cout << fileEachNode[0][0] << std::endl;
 
 
+		std::cout << "line132\n";
 		//decodeFilesToRead(fileEachNodeSize, fileEachNode, fileList, path);
 
 		filesPerNode[0] = fileList.size();
@@ -137,15 +141,16 @@ int main(int argc, char *argv[])
 		MPI_Bcast(filesPerNode, worldSize, MPI_INT, 0, MPI_COMM_WORLD);
 		std::vector<std::vector <dataStruct>> dataArrayList;
 		//dataArrayList.reserve(fileList.size());
-		vector <vector <double>> localPercentileList(fileList.size());
+		vector <vector <double>> localPercentileList(fileEachNode[0].size());
 		int numOfPercentiles = mbins * worldSize;
 		//std::cout << numOfPercentiles << std::endl;
 		double numDataEachPart = 0.0;
 		//std::cout << "line 182\n";
 
 		std::string tempFileName;
+		std::cout << fileEachNode[0].size() << std::endl;
 
-		for (i = 0; i < fileList.size(); i++)
+		for (i = 0; i < fileEachNode[0].size(); i++)
 		{
 
 			std::vector<dataStruct> tempDS;
@@ -157,8 +162,11 @@ int main(int argc, char *argv[])
 
 			//vector <double> localPercentile(mbins * worldSize - 1);
 			//	std::cout << "line189\n" << std::endl;
-			tempFileName = fileList[i];
+			tempFileName = path + fileEachNode[0][i];
+			//std::cout << tempFileName << std::endl;
+			//std::cout << "line163\n";
 			readFile(tempFileName, tempDS, linesToRead); // read
+			//std::cout << tempDS[0].coordinates[0] << std::endl;
 			int arraySize = tempDS.size();
 			//	std::cout << "line191\n" << std::endl;
 			sortPrep(tempDS, columnToSort, 0, tempDS.size() - 1); // sort
@@ -167,6 +175,7 @@ int main(int argc, char *argv[])
 
 			//tempd = localPercentileList[i];
 			findPercentile(tempDS, numOfPercentiles, arraySize, columnToSort, tempd, numDataEachPart);
+			//localPercentileList[i].reserve(tempd.size());
 			localPercentileList[i] = tempd;
 			//	std::cout << "line 205\n";
 			dataArrayList.push_back(tempDS);
@@ -193,7 +202,7 @@ int main(int argc, char *argv[])
 		/* Receive local percentile data from worker nodes */
 
 		recvLocalPercentile(localGlobalPercentile, worldSize, status, localGlobalPercentileList, numOfPercentiles);
-		std::cout << "line246\n";
+		//std::cout << "line246\n";
 		int numOfBins = numOfPercentiles - 1;
 		//	cout << "debug4\n";
 		for (i = 0; i < worldSize; i++)
@@ -364,18 +373,20 @@ int main(int argc, char *argv[])
 		int *filesPerNode;
 		filesPerNode = new int [worldSize];
 
-		std::vector<int> localFileList;
+		std::vector<string> localFileList;
 
 		recvFilesToRead(fileNodeEachSize, status, localFileList);
+
+		std::cout << myrank << " localFileList[0] = " << localFileList[0] << std::endl;
 
 		std::vector <std::string> fileList(fileNodeEachSize);
 
 
-		decodeFilesToRead(fileNodeEachSize, localFileList, fileList, path);
+		//decodeFilesToRead(fileNodeEachSize, localFileList, fileList, path);
 
 		MPI_Bcast(filesPerNode, worldSize, MPI_INT, 0, MPI_COMM_WORLD);
 
-		//std::cout << "line 393\n";
+		std::cout << "line 393\n";
 
 		//std::vector <dataStruct> dataArray;
 		std::vector < std::vector<dataStruct>> dataArrayList;
@@ -388,11 +399,11 @@ int main(int argc, char *argv[])
 
 		std::string tempFileName;
 		//std::cout << "line 403\n";
-		for (i = 0; i < fileList.size(); i++)
+		for (i = 0; i < localFileList.size(); i++)
 		{
 			std::vector<dataStruct> temp;
 			std::vector<double> tempd;
-			tempFileName = fileList[i];
+			tempFileName = path + localFileList[i];
 			//	std::cout << "Worker: " <<  i << std::endl;
 			//temp.clear();
 			//temp.resize(dataArrayList[i].size());
@@ -403,6 +414,7 @@ int main(int argc, char *argv[])
 			//	std::cout << "line411\n" << std::endl;
 			//vector <double> localPercentile(mbins * worldSize - 1);
 			//	std::cout << "line413\n" << std::endl;
+			std::cout << "Reading file: " << localFileList[i] << std::endl;
 			readFile(tempFileName, temp, linesToRead); // read
 			//	std::cout << "line415\n" << std::endl;
 			int arraySize = temp.size();
