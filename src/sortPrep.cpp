@@ -8,16 +8,16 @@ void sortPrep(vector<dataStruct> &data,int column, int left, int right){
 	dataStruct *tmp;
 	tmp =(dataStruct *) malloc((size)*sizeof(dataStruct));
 	//begin recursive sort
-	sort(data,tmp,column,left,right);
+	sort1(data,tmp,column,left,right);
 
 }
  
-void sort(vector<dataStruct> &data, dataStruct *tmp,int column,int left, int right){
+void sort1(vector<dataStruct> &data, dataStruct *tmp,int column,int left, int right){
 	long middle=(left+right)/2;
 	//dividing out for merge
 	if(left<right){
-	sort(data,tmp,column,left,middle);
-	sort(data,tmp,column,middle+1,right);
+	sort1(data,tmp,column,left,middle);
+	sort1(data,tmp,column,middle+1,right);
         //merge call 
 	merge(data,tmp,column,left,middle+1,right);
    }
@@ -42,3 +42,17 @@ void merge(vector<dataStruct> &data, dataStruct *tmp,int column, int left, int m
         data[right] = tmp[right];
 
 }
+
+bool compareFunDim0(const dataStruct& a, const dataStruct& b){
+  return a.coordinates[0] < b.coordinates[0];
+}
+
+bool compareFunDim1(const dataStruct& a, const dataStruct& b){
+  return a.coordinates[1] < b.coordinates[1];
+}
+
+bool compareFunDim2(const dataStruct& a, const dataStruct& b){
+  return a.coordinates[2] < b.coordinates[2];
+}
+
+

@@ -13,7 +13,8 @@
 #include <unistd.h>
 #include "mpi.h"
 #include <time.h>
-
+#include <functional>
+#include <algorithm>
 // Common library includes for everyone...
 
 // Specific includes for individually authored code
@@ -28,8 +29,6 @@
 #include "sperateArray.h"
 #include "headNodeMethods.h"
 #include "workerNodeMethods.h"
-
-
 
 // Functions needed for header includes
 /*
@@ -75,6 +74,7 @@ struct dataStruct
 };
 #endif
 
+
 #ifndef DATA_N 
 #define DATA_N
 struct node{
@@ -88,7 +88,7 @@ double length;
 #endif
 
 using namespace std;
-
+//using namespace std::placeholders;
 
 /* Main Routine */
 
@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
 	int maxFiles;
 	int maxNodes;
 	int columnToSort = 0;
+
 	int linesToRead = 0;
 	std::string path;
         clock_t start=clock();
@@ -174,8 +175,10 @@ int main(int argc, char *argv[])
                 timeData<<"time to read files from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
 
                 cout<<dataArray[0].coordinates[0]<<endl;
-		sortPrep(dataArray, columnToSort,0,dataArray.size()-1);
-                cout<<dataArray[0].coordinates[0]<<endl;
+		//sortPrep(dataArray, columnToSort,0,dataArray.size()-1);
+		std::sort(dataArray.begin(),dataArray.end(),compareFunDim0);
+		//qsort(dataArray.front(),linesToRead,sizeof(dataStruct),compareFunCertainDim);
+                //cout<<dataArray[0].coordinates[0]<<endl;
                 t2=clock()-t1;
                 t1=t2;
                 timeData<<"time for local sort from head:"<<(float(t2)/CLOCKS_PER_SEC)<<"s"<<endl;
