@@ -38,15 +38,30 @@ void decodeFilesToRead(int &fileEachNodeSize, std::vector<int> &localFileList, s
 	}
 }
 
-void recvFilesToRead(int &fileNodeEachSize, MPI_Status &status, std::vector<int> &localFileList)
+void recvFilesToRead(int &fileNodeEachSize, MPI_Status &status, std::vector<std::string> &localFileList)
 {
 	MPI_Recv(&fileNodeEachSize, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
-
+	//std::cout << "Recv: " << fileNodeEachSize << std::endl;
+	int i, j;
 	//std::vector<int> localFileList;
 	localFileList.reserve(fileNodeEachSize);
 	localFileList.resize(fileNodeEachSize);
+	//std::string tempFile;
+	char *fileName;
+	fileName = new char[17];
 
-	MPI_Recv(&localFileList.front(), fileNodeEachSize, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+	for (i = 0; i < localFileList.size(); i++)
+	{
+		MPI_Recv(fileName, 17, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
+		std::string tempFile = fileName;
+		//std::cout << "Recv: " << tempFile << std::endl;
+		localFileList[i] = tempFile;
+	}
+	delete fileName;
+
+	
+	
+	//std::cout << "First file: " << localFileList[0] << std::endl;
 }
 
 void sendLocalPercentile(int &worldSize, std::vector <double> &localPercentile, int &numOfBins)

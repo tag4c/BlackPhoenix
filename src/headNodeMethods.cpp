@@ -41,114 +41,112 @@ void decodeFilesToRead(int fileEachNodeSize, std::vector <std::vector<int>> &fil
 
 
 
-void assignFilesToRead(std::string &dirpath, int worldSize, std::vector <std::vector<int>> &fileEachNode)
+void assignFilesToRead(std::string &dirpath, int worldSize, std::vector <std::vector<std::string>> &fileEachNode)
 {
 	int i, j, k;
-	std::vector <int> dirList;
-
+	int startSize;
+	int rank;
+	int fileNum;
+	char a;
+	std::vector <std::string> dirList;
+	std::string temp;
+	//std::cout << "calling read dir\n";
 	read_directory(dirpath, dirList);
+	startSize = 0;
+	rank = 1;
+	fileNum = 0;
 
-	int files_per_node = floor(dirList.size() / worldSize);
-	int extra_files = dirList.size() % worldSize;
+	//std::cout << "finished reading file list.\n";
 
-	int assigner = 0;
-
-	int **file_range_per_node = new int*[worldSize];
-	for (i = 0; i < worldSize; i++)
+	while (startSize < dirList.size())
 	{
-		file_range_per_node[i] = new int[2];
-	}
-	for (i = 0; i < worldSize; i++)
-	{
-		file_range_per_node[i][0] = assigner;
-		file_range_per_node[i][1] = assigner + files_per_node - 1;
-
-		if ((i == worldSize - 1) && file_range_per_node[i][1] <= dirList.size())
-		{
-			file_range_per_node[i][1] = dirList.size() - 1;
-		}
-		assigner = assigner + files_per_node;
-	}
-
-	//std::cout << "Total number of files: " << dirList.size() << std::endl;
-	int tmp;
-	std::vector<int> temp;
-	int fileCount = 0;
-	for (i = 0; i < worldSize; i++)
-	{
-		for (j = file_range_per_node[i][0]; j < file_range_per_node[i][1] + 1; j++)
-		{
-			tmp = dirList[j];
-			temp.push_back(tmp);
-			std::cout << "Assigning file: " << tmp << " to node: " << i << std::endl;
-			fileCount++;
-		}
-
-		fileEachNode.push_back(temp);
+		temp = dirList[startSize]; // get a file off the list.
+	//	std::cout << "Assigning file: " << temp << " to node: " << rank - 1 << std::endl;
+		fileEachNode[rank - 1].push_back(temp); // push that file onto specific one.
 		temp.clear();
-
-	}
-
-	// free up the array created by new
-
-	for (i = 0; i < worldSize; i++)
-	{
-		delete file_range_per_node[i];
-	}
-	delete file_range_per_node;
-
-
-}
-
-void read_directory(const std::string& name, std::vector<int>& v)
-{
-	DIR* dirp = opendir(name.c_str());
-	std::vector<std::string> tmp;
-	struct dirent * dp;
-	int tempInt = 0;
-	while ((dp = readdir(dirp)) != NULL) {
-		if (dp->d_name != "." || dp->d_name != "..")
+		if (rank % worldSize != 0)
 		{
-			tmp.push_back(dp->d_name);
-		}
-	}
-	for (int i = 0; i < tmp.size(); i++)
-	{
-		if (tmp[i] == "." || tmp[i] == "..")
-		{
-			continue;
+			rank++; // cycle to next node.
 		}
 		else
 		{
-			std::string temp;
-			temp = tmp[i].substr(8, 5);
-			tempInt = stoi(temp);
-			v.push_back(tempInt);
+			rank = 1; // we're on the last node, so we need to go back to the first
 		}
+		startSize++; // decrease total number of files that need to be assigned.
 	}
 
+	/*for (i = 0; i < worldSize; i++)
+	{
+		std::cout << "Rank: " << i << " was assigned: " << fileEachNode[i].size() << " files.\n";
+	}
+	std::cout << "File assignments\n";
+	for (i = 0; i < worldSize; i++)
+	{
+		for (j = 0; j < fileEachNode[i].size(); j++)
+		{
+			std::cout << "Rank: " << i << " was assigned: " << fileEachNode[i][j] << std::endl;
+		}
+
+	}
+
+	std::cin >> a;
+
+	*/
+}
+
+void read_directory(const std::string& name, std::vector<std::string>& v)
+{
+	DIR* dirp = opendir(name.c_str());
+	int i;
+	struct dirent * dp;
+	std::string temp;
+	std::vector<std::string> tmp;
+	while ((dp = readdir(dirp)) != NULL) {
+		if (dp->d_name != "." || dp->d_name != "..") // ignore . and ..
+		{
+			tmp.push_back(dp->d_name); // add file to list.
+		}
+	}
+	for (i = 0; i < tmp.size(); i++)
+	{
+		temp = tmp[i];
+		if (temp != "." && temp != "..")
+		{
+			v.push_back(temp);
+		}
+		temp.clear();
+	}
 
 	closedir(dirp);
 }
 
-void sendFilesToRead(int &worldSize, std::vector <std::vector<int>>  &fileEachNode, MPI_Request &request, int &fileEachNodeSize, int *filesPerNode)
+void sendFilesToRead(int &worldSize, std::vector <std::vector<string>>  &fileEachNode, MPI_Request &request, int &fileEachNodeSize, int *filesPerNode)
 {
-	int i, j;
+	int i, j, k;
 	/* This needs to be put in communication.cpp */
 
 	/* ========================================*/
 	//int fileEachNodeSize = 0;
+	char *fileName;
+	fileName = new char[17];
 
 	for (i = 1; i < worldSize; i++)
 	{
 		fileEachNodeSize = fileEachNode[i].size();
 		filesPerNode[i] = fileEachNode[i].size();
-
+		//std::cout << "fileeachnode size: " << fileEachNodeSize;	
 		MPI_Isend(&fileEachNodeSize, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
-		MPI_Isend(&fileEachNode[i].front(), fileEachNodeSize, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
+		for (j = 0; j < fileEachNode[i].size(); j++)
+		{
+			//fileName = fileEachNode[i][j].c_str();
+			MPI_Isend(fileEachNode[i][j].c_str(), 17, MPI_CHAR, i, 0, MPI_COMM_WORLD, &request);
+
+		}
+
+
 	}
 	fileEachNodeSize = fileEachNode[0].size();
-
+	delete fileName;
 
 }
 
