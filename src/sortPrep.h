@@ -1,4 +1,5 @@
 #include <vector>
+
 using namespace std;
 #ifndef DATA_H 
 #define DATA_H

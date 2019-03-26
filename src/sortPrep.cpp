@@ -55,4 +55,3 @@ bool compareFunDim2(const dataStruct& a, const dataStruct& b){
   return a.coordinates[2] < b.coordinates[2];
 }
 
-
