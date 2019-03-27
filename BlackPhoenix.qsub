@@ -1,4 +1,4 @@
 #$ -N Sort
 #$-pe mpi 128
-#$-q intel.q
-mpirun -np $NSLOTS $HOME/BlackPhoenix/parallelsort 20000000 $HOME/localstorage/public/coms7900-data/BlackPhoenixBinary/
+#$-q amd8.q
+mpirun -np $NSLOTS $HOME/BlackPhoenix/parallelsort 10000 $HOME/localstorage/public/coms7900-data/BlackPhoenixBinary/

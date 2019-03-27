@@ -135,11 +135,11 @@ void sendFilesToRead(int &worldSize, std::vector <std::vector<string>>  &fileEac
 		fileEachNodeSize = fileEachNode[i].size();
 		filesPerNode[i] = fileEachNode[i].size();
 		//std::cout << "fileeachnode size: " << fileEachNodeSize;	
-		MPI_Isend(&fileEachNodeSize, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
+		MPI_Send(&fileEachNodeSize, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
 		for (j = 0; j < fileEachNode[i].size(); j++)
 		{
 			//fileName = fileEachNode[i][j].c_str();
-			MPI_Isend(fileEachNode[i][j].c_str(), 17, MPI_CHAR, i, 0, MPI_COMM_WORLD, &request);
+			MPI_Send(fileEachNode[i][j].c_str(), 17, MPI_CHAR, i, 0, MPI_COMM_WORLD);
 
 		}
 
