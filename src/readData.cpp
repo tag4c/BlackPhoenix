@@ -67,7 +67,7 @@ void readFile(std::string &filepath, std::vector<dataStruct> &dataArray, int &li
 		}
     	else
 		{
-			std::cout << "File wasn't opened...\n";
+			std::cout << "File: " << filepath << " wasn't opened...\n";
 			exit(1);
 
 		}

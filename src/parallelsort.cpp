@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	const float scale = 1.05;
 	if (myrank == 0)
 	{
-		std::cout << "Starting head node\n";
+		//std::cout << "Starting head node\n";
 		clock_t  t1, t2;
 		t1 = start;
 		/* Have this node read all data in and send it out first? */
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 		sendFilesToRead(worldSize, fileEachNode, request, fileEachNodeSize, filesPerNode);
 		std::vector <std::string> fileList = fileEachNode[0];
 
-		filesPerNode[0] = fileList.size();
+		filesPerNode[0] = fileEachNode[0].size();
 		for (int i = 0; i < worldSize; i++) {
 			fileNum = fileNum + filesPerNode[i];
 		}
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 			//tempd = localPercentileList[i];
 			findPercentile(tempDS, numOfPercentiles, arraySize, columnToSort, tempd, numDataEachPart);
 			localPercentileList[i] = tempd;
-		//	std::cout << "line 171\n";
+			//	std::cout << "line 171\n";
 			dataArrayList.push_back(tempDS);
 			//	std::cout << "line210\n";
 		}
@@ -174,7 +174,9 @@ int main(int argc, char *argv[])
 
 		vector <double> localGlobalPercentile;
 
-		globalPositionValue(localPercentileList, worldSize, localGlobalPercentile, numOfPercentiles);
+		int numFile = fileEachNode[0].size();
+
+		globalPositionValue(localPercentileList, numFile, localGlobalPercentile, numOfPercentiles);
 		std::cout << "line220\n";
 
 		vector <double> globalPositionValueData;
@@ -212,16 +214,27 @@ int main(int argc, char *argv[])
 
 		vector <int> remotePosIndex;
 
-		vector <vector <int>> posIndexList(fileList.size());
+		vector <vector <int>> posIndexList(fileEachNode[0].size());
 
 		// sperate array loop
 
-		for (i = 0; i < fileList.size(); i++)
+		for (i = 0; i < fileEachNode[0].size(); i++)
 		{
 			int dataSize = dataArrayList[i].size();
 			sperateArray(dataArrayList[i], dataSize, globalPositionValueData, numDataEachPart, columnToSort, posIndexList[i]);
 
 		}
+		/*for (i = 0; i < fileEachNode[0].size(); i++)
+		{
+			std::cout << "line229 " << i << " ";
+			for (j = 0; j < numOfPercentiles-1; j++)
+			{
+				std::cout << posIndexList[i][j] << " ";
+			}
+			std::cout << "\n";
+		}*/
+
+
 
 
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -360,7 +373,7 @@ int main(int argc, char *argv[])
 		tree = new node[treeMemSize];
 
 		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
-	
+
 		//std::cout << "line366\n";
 		/*
 				double *sp;
@@ -389,10 +402,10 @@ int main(int argc, char *argv[])
 //		std::cout << "line388\n";
 
 		// sort it
-		sortPrep(searchDataArray, columnToSort, 0, linesToRead-1);
+		sortPrep(searchDataArray, columnToSort, 0, linesToRead - 1);
 		//std::cout << searchDataArray[0].coordinates[0] << std::endl;
 		// send out 501
-	//	std::cout << "line394\n";
+		//	std::cout << "line394\n";
 		MPI_Bcast(&searchDataArray.front(), linesToRead, MPI_dataArray, 0, MPI_COMM_WORLD);
 
 		//std::cout << myrank << ": done\n";
@@ -402,15 +415,16 @@ int main(int argc, char *argv[])
 		double radius = 0.1;
 		vector<vector<int>> neighPoints(linesToRead);
 		vector<int> tempNeigh;
-//		std::cout << "line406\n";
+		std::cout << "line406\n";
 		for (i = 0; i < searchDataArray.size(); i++)
 		{
-			//std::cout << i << std::endl;
+			std::cout << i << std::endl;
 			sp[0] = searchDataArray[i].coordinates[0];
 			sp[1] = searchDataArray[i].coordinates[1];
 			sp[2] = searchDataArray[i].coordinates[2];
 			kdTree_search(tree, radius, sp, treeMemSize - 1, tempNeigh);
 			neighPoints[i] = tempNeigh;
+			tempNeigh.clear();
 		}
 
 		std::cout << myrank << ": points within radius: " << neighPoints[0].size() << std::endl;
@@ -430,7 +444,7 @@ int main(int argc, char *argv[])
 	/* Slave nodes (All others) */
 	else
 	{
-		std::cout << "Starting worker node.\n";
+		//std::cout << "Starting worker node.\n";
 		MPI_Request request;
 		MPI_Status status;
 		//char a;
@@ -444,6 +458,8 @@ int main(int argc, char *argv[])
 		recvFilesToRead(fileNodeEachSize, status, localFileList);
 
 		std::vector <std::string> fileList(fileNodeEachSize);
+
+		//std::cout << myrank << ": number of files: " << localFileList.size() << std::endl;
 
 
 		//decodeFilesToRead(fileNodeEachSize, localFileList, fileList, path);
@@ -468,7 +484,7 @@ int main(int argc, char *argv[])
 			std::vector<dataStruct> temp;
 			std::vector<double> tempd;
 			tempFileName = path + localFileList[i];
-		//	std::cout << myrank << ":" << i<<std::endl;
+			//	std::cout << myrank << ":" << i<<std::endl;
 			//	std::cout << "Worker: " <<  i << std::endl;
 			//temp.clear();
 			//temp.resize(dataArrayList[i].size());
@@ -488,33 +504,33 @@ int main(int argc, char *argv[])
 
 			findPercentile(temp, numOfPercentiles, arraySize, columnToSort, tempd, numDataEachPart);
 			localPercentileList[i] = tempd;
-				std::cout << "line419\n" << std::endl;
+			//std::cout << "line419\n" << std::endl;
 			dataArrayList.push_back(temp);
-
-
 
 		}
 
 		vector <double> localGlobalPercentile;
+		//std::cout << "size of local Percentile list: " << localPercentileList.size() << std::endl;
 		std::cout << "line499\n";
-		globalPositionValue(localPercentileList, worldSize, localGlobalPercentile, numOfPercentiles);
+		int numFile = localFileList.size();
+		globalPositionValue(localPercentileList, numFile, localGlobalPercentile, numOfPercentiles);
 		std::cout << "line500\n";
 		sendLocalPercentile(worldSize, localGlobalPercentile, numOfPercentiles);
-	std::cout << "line502\n";
+		std::cout << "line502\n";
 		recvGlobalPositionValue(globalPositionValueData);
 		int arraySize = dataArrayList.size();
-	std::cout << "line505\n";
-		vector <vector <int>> posIndexList(fileList.size());
+		std::cout << "line505\n";
+		vector <vector <int>> posIndexList(localFileList.size());
 
 		// sperate array loop
 
-		for (i = 0; i < fileList.size(); i++)
+		for (i = 0; i < localFileList.size(); i++)
 		{
 			int dataSize = dataArrayList[i].size();
 			sperateArray(dataArrayList[i], dataSize, globalPositionValueData, numDataEachPart, columnToSort, posIndexList[i]);
 
 		}
-	std::cout << "line516\n";
+		std::cout << "line516\n";
 		MPI_Barrier(MPI_COMM_WORLD);
 
 		int *binSizes;
@@ -566,8 +582,12 @@ int main(int argc, char *argv[])
 		MPI_Barrier(MPI_COMM_WORLD);
 
 
-		swapDataWorker(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
+		std::cout << myrank << " " << filesPerNode[myrank] << std::endl;
 
+
+
+		swapDataWorker(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
+		std::cout << "line574\n";
 		// sort
 
 		sortPrep(dataArrayList[0], columnToSort, 0, dataArrayList[0].size() - 1);
@@ -602,8 +622,8 @@ int main(int argc, char *argv[])
 		tree = new node[treeMemSize];
 
 		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
-		
-	//	std::cout << myrank << ": line581\n";
+
+		//	std::cout << myrank << ": line581\n";
 
 		double *sp;
 		sp = new double [3];
@@ -645,6 +665,7 @@ int main(int argc, char *argv[])
 			sp[2] = searchDataArray[i].coordinates[2];
 			kdTree_search(tree, radius, sp, treeMemSize - 1, tempNeigh);
 			neighPoints[i] = tempNeigh;
+			tempNeigh.clear();
 		}
 		std::cout << myrank << ": points within radius: " << neighPoints[0].size() << std::endl;
 

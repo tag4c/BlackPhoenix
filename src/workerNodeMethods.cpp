@@ -204,8 +204,9 @@ void swapDataWorker(int &worldSize, std::vector <std::vector<dataStruct>> &dataA
 				for (i = 0; i < rNewSize; i++) {
 					newData[right].push_back(tempDataR[i]);
 				}
-				tempDataR.reserve(0);
-				tempDataR.resize(0);
+				tempDataR.clear();
+				//tempDataR.reserve(0);
+				//tempDataR.resize(0);
 
 			}
 
@@ -219,9 +220,9 @@ void swapDataWorker(int &worldSize, std::vector <std::vector<dataStruct>> &dataA
 				MPI_Recv(&tempDataL.front(), lNewSize, MPI_dataArray, left, 0, MPI_COMM_WORLD, &status3);
 				for (i = 0; i < lNewSize; i++) {
 					newData[left].push_back(tempDataL[i]);
-					tempDataL.reserve(0);
-					tempDataL.resize(0);
-
+					//tempDataL.reserve(0);
+					//tempDataL.resize(0);
+					tempDataL.clear();
 				}
 			}
 
