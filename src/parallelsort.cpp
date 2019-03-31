@@ -115,8 +115,17 @@ int main(int argc, char *argv[])
 	MPI_Type_commit(&MPI_dataArray); // tell MPI we're done constructing our data type
 	/* ========================================*/
 	/* Scheduler Node (HEAD NODE) */
+	float scale;
 	const int mbins = 10;
-	const float scale = 1.05;
+	if (worldSize < 128)
+	{
+		scale = 1.05;
+	}
+	else
+	{
+		scale = 1 + (1.0 / worldSize);
+	}
+
 	if (myrank == 0)
 	{
 		//std::cout << "Starting head node\n";
@@ -412,7 +421,7 @@ int main(int argc, char *argv[])
 
 		readFile(filename, searchDataArray, linesToRead);
 //		std::cout << "line388\n";
-
+		//std::cout << "501: " << searchDataArray[0].coordinates[0] << std::endl;
 		// sort it
 		sortPrep(searchDataArray, columnToSort, 0, linesToRead - 1);
 		//std::cout << searchDataArray[0].coordinates[0] << std::endl;
@@ -426,17 +435,17 @@ int main(int argc, char *argv[])
 		sp = new double [3];
 		double radius = 0.1;
 		vector<vector<int>> neighPoints(linesToRead);
-		vector<int> tempNeigh;
+		
 		//std::cout << "line406\n";
 		for (i = 0; i < searchDataArray.size(); i++)
 		{
+			vector<int> tempNeigh;
 			//std::cout << i << std::endl;
 			sp[0] = searchDataArray[i].coordinates[0];
 			sp[1] = searchDataArray[i].coordinates[1];
 			sp[2] = searchDataArray[i].coordinates[2];
 			kdTree_search(tree, radius, sp, treeMemSize - 1, tempNeigh);
 			neighPoints[i] = tempNeigh;
-			tempNeigh.clear();
 		}
 		
 		vector<vector<point> > pointsVec(linesToRead);
