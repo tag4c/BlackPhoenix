@@ -69,6 +69,22 @@ void sendLocalPercentile(int &worldSize, std::vector <double> &localPercentile, 
 	MPI_Send(&localPercentile.front(), numOfBins - 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
 }
 
+void sendNeighPoints(vector<int>& pointsPosIndex, std::vector<point>& pointsVec)
+{
+  int blockSize[1] = {3};
+  MPI_Datatype MPI_point[1] = {MPI_DOUBLE};
+  MPI_Datatype MPI_pointArray;
+  MPI_Aint offsets[1];
+  MPI_Request request0,request1,request2;
+  offsets[0] = offsetof(point,coordinates);
+  MPI_Type_create_struct(1,blockSize,offsets,MPI_point,&MPI_pointArray);
+  MPI_Type_commit(&MPI_pointArray);//create the point array
+  int numOfpointsPosIndex = pointsPosIndex.size();
+  MPI_Isend(&pointsPosIndex.front(),numOfpointsPosIndex,MPI_INT,0,0,MPI_COMM_WORLD,&request0);
+  int numOfpointsVec = pointsVec.size();
+  MPI_Isend(&numOfpointsVec,1,MPI_INT,0,0,MPI_COMM_WORLD,&request1);
+  MPI_Isend(&pointsVec.front(),numOfpointsVec,MPI_pointArray,0,0,MPI_COMM_WORLD,&request2);
+}
 void recvGlobalPositionValue(std::vector <double> &globalPositionValueData)
 {
 	int dataArraySize;

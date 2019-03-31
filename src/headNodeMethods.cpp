@@ -162,6 +162,33 @@ void recvLocalPercentile(std::vector <double> &localPercentile, int &worldSize, 
 	}
 }
 
+void recNeighPoints(std::vector<std::vector<point> >& pointsVec, int& linesToRead, int& worldSize)
+{
+  int blockSize[1] = {3};
+  MPI_Datatype MPI_point[1] = {MPI_DOUBLE};
+  MPI_Datatype MPI_pointArray;
+  MPI_Aint offsets[1];
+  offsets[0] = offsetof(point,coordinates);
+  MPI_Type_create_struct(1,blockSize,offsets,MPI_point,&MPI_pointArray);
+  MPI_Type_commit(&MPI_pointArray);//create the point array
+  MPI_Status status0,status1,status2;
+  for(int i=1;i<worldSize;i++){
+    int tempnumOfPVec;
+    std::vector<int> tempPosIndex(linesToRead+1);
+    MPI_Recv(&tempPosIndex.front(),linesToRead+1,MPI_INT,i,0,MPI_COMM_WORLD,&status0);
+    MPI_Recv(&tempnumOfPVec,1,MPI_INT,i,0,MPI_COMM_WORLD,&status1);
+    std::vector<point> tempPVec(tempnumOfPVec);
+    MPI_Recv(&tempPVec.front(),tempnumOfPVec,MPI_pointArray,i,0,MPI_COMM_WORLD,&status2);
+    for(int j=0;j<linesToRead;j++){
+      int numOfPoints = tempPosIndex[j+1] - tempPosIndex[j];
+      for(int k=0;k<numOfPoints;k++){
+    	int index = tempPosIndex[j] + k;
+    	pointsVec[j].push_back(tempPVec[index]);
+      }
+    }
+  }
+}
+
 void sendGlobalPositionValue(int &arraySize, std::vector <double> &globalPositionValueData)
 {
 	MPI_Bcast(&arraySize, 1, MPI_INT, 0, MPI_COMM_WORLD);

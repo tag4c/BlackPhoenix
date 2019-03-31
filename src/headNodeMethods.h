@@ -28,10 +28,19 @@ struct dataStruct
 	long long int id;  // Line Number
 	double coordinates[3];     // column 1
 };
+
 #endif
 
+#ifndef DATA_L
+#define DATA_L
 
+//struct for neighbor points
+struct point
+{
+  double coordinates[3];
+};
 
+#endif
 
 void assignFilesToRead(std::string &dirpath, int worldSize, std::vector <std::vector<std::string>> &fileEachNode);
 void read_directory(const std::string& name, std::vector<std::string>& v);
@@ -40,3 +49,4 @@ void sendFilesToRead(int &worldSize, std::vector <std::vector<std::string>>  &fi
 void recvLocalPercentile(std::vector <double> &localPercentile, int &worldSize, MPI_Status &status, std::vector <std::vector <double>> &localPercentileList, int &numOfBins);
 void sendGlobalPositionValue(int &arraySize, std::vector <double> &globalPositionValueData);
 void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArray, int &myrank, int **posIndex, int *filesPerNode);
+void recNeighPoints(std::vector<std::vector<point> >& pointsVec, int& linesToRead, int& worldSize);

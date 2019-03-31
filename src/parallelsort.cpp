@@ -37,7 +37,20 @@ struct dataStruct
 	long long int id;  // Line Number
 	double coordinates[3];     // column 1
 };
+
 #endif
+
+#ifndef DATA_L
+#define DATA_L
+
+//struct for neighbor points                                   
+struct point
+{
+  double coordinates[3];
+};
+
+#endif
+
 
 #ifndef DATA_N
 #define DATA_N
@@ -398,7 +411,6 @@ int main(int argc, char *argv[])
 		std::string filename = "/home/tag4c/datafile00501.bin";
 
 		readFile(filename, searchDataArray, linesToRead);
-
 //		std::cout << "line388\n";
 
 		// sort it
@@ -426,10 +438,23 @@ int main(int argc, char *argv[])
 			neighPoints[i] = tempNeigh;
 			tempNeigh.clear();
 		}
-
-		std::cout << myrank << ": points within radius: " << neighPoints[0].size() << std::endl;
-
-
+		
+		vector<vector<point> > pointsVec(linesToRead);
+		for(i=0;i<linesToRead;i++){
+		  int numOfNeiPoints = neighPoints[i].size();
+		  point tempP;
+		  for(j=0;j<numOfNeiPoints;j++){
+		    for(int k=0;k<3;k++){
+		      tempP.coordinates[k] = tree[neighPoints[i][j]].cent[k];
+		    }
+		    pointsVec[i].push_back(tempP);
+		  }
+		}
+		cout << myrank << " :" << pointsVec[804].size() << endl;
+	
+		recNeighPoints(pointsVec,linesToRead,worldSize);
+	
+		cout << myrank << " :" << pointsVec[804].size() << endl;
 		// do something.. search...
 
 		// for each line in 501, we need to find the number of points in the kd tree within a certain radius
@@ -633,7 +658,6 @@ int main(int argc, char *argv[])
 		sp[2] = 0.0;
 
 		double radius = 0.1;
-
 		//vector<int> neighPoints(0);
 
 		//kdTree_search(tree, radius, sp, treeMemSize - 1, neighPoints);
@@ -647,10 +671,10 @@ int main(int argc, char *argv[])
 
 
 		MPI_Bcast(&searchDataArray.front(), linesToRead, MPI_dataArray, 0, MPI_COMM_WORLD);
+
 		//std::cout << myrank << ": done\n";
 		//searchDataArray.resize(linesToRead);
 		//std::cout << searchDataArray[0].coordinates[0] << std::endl;
-
 		// call kdtree_search on every point.
 		/*double *sp;
 		sp = new double [3];
@@ -660,14 +684,32 @@ int main(int argc, char *argv[])
 
 		for (i = 0; i < searchDataArray.size(); i++)
 		{
-			sp[0] = searchDataArray[i].coordinates[0];
-			sp[1] = searchDataArray[i].coordinates[1];
-			sp[2] = searchDataArray[i].coordinates[2];
-			kdTree_search(tree, radius, sp, treeMemSize - 1, tempNeigh);
-			neighPoints[i] = tempNeigh;
-			tempNeigh.clear();
+		  sp[0] = searchDataArray[i].coordinates[0];
+		  sp[1] = searchDataArray[i].coordinates[1];
+		  sp[2] = searchDataArray[i].coordinates[2];
+		  kdTree_search(tree, radius, sp, treeMemSize - 1, tempNeigh);
+		  neighPoints[i] = tempNeigh;
+		  //cout << i << " (" <<tempNeigh.size() << ")" << endl; 
+		  tempNeigh.clear();
 		}
-		std::cout << myrank << ": points within radius: " << neighPoints[0].size() << std::endl;
+	      
+		vector<int> pointsPosIndex(linesToRead+1);    
+		pointsPosIndex[0] = 0;
+		vector<point> pointsVec(0);
+		for(i=0;i<linesToRead;i++){
+		  int numOfNeiPoints = neighPoints[i].size();
+		  pointsPosIndex[i+1] = pointsPosIndex[i] + numOfNeiPoints;
+		  for(j=0;j<numOfNeiPoints;j++){
+		    point tempP;
+		    for(int k=0;k<3;k++){
+		      tempP.coordinates[k] = tree[neighPoints[i][j]].cent[k];
+		    }
+		    pointsVec.push_back(tempP);
+		  }
+		}
+
+		cout << myrank << " : "<< neighPoints[804].size() << endl;
+		sendNeighPoints(pointsPosIndex,pointsVec);
 
 		// do someother stuff.
 
