@@ -37,20 +37,7 @@ struct dataStruct
 	long long int id;  // Line Number
 	double coordinates[3];     // column 1
 };
-
 #endif
-
-#ifndef DATA_L
-#define DATA_L
-
-//struct for neighbor points                                   
-struct point
-{
-  double coordinates[3];
-};
-
-#endif
-
 
 #ifndef DATA_N
 #define DATA_N
@@ -116,7 +103,7 @@ int main(int argc, char *argv[])
 	/* ========================================*/
 	/* Scheduler Node (HEAD NODE) */
 	float scale;
-	const int mbins = 10;
+	const int mbins = 1;
 	if (worldSize < 128)
 	{
 		scale = 1.05;
@@ -308,19 +295,26 @@ int main(int argc, char *argv[])
 		//cout << "debug7\n";
 		boundries[0] = 0;
 		boundries[worldSize] = linesToRead;
+                scale=1;
+                double factor=.5; 
 		int temp = 0, index = 1;
-
+                //while(index!=worldSize){
+                temp=0;
+                index=1;
+                factor=factor/10;
+                scale=1+factor;
 		for (int i = 0; i < numOfPercentiles; i++) {
-			if ((temp + binSizes[i]) < ((linesToRead * scale * fileNum) / worldSize)) {
+			if ((temp + binSizes[i]) < ((linesToRead * fileNum*1.01) / worldSize)) {
 				temp = temp + binSizes[i];
 			} else {
 				//	std::cout << "setting boundary...\n";
 				boundries[index] = i - 1;
-				//cout << "node " << index - 1 << " will get " << temp << " elements\n";
+			cout << "node " << index - 1 << " will get " << temp << " elements "<< fileNum <<"\n";
 				index++;
 				temp = binSizes[i];
 			}
 		}
+                //}
 		//for (i = 0; i < worldSize; i++)
 		//{
 		//	std::cout << myrank << " boundaries " << boundries[i] << std::endl;
@@ -331,7 +325,7 @@ int main(int argc, char *argv[])
 		for (int i = 0; i < filesPerNode[myrank]; i++) {
 			for (j = 0; j < worldSize - 1; j++) {
 				//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
-				boundries2[i][j + 1] = posIndexList[i][boundries[j + 1]];
+				boundries2[i][j + 1] = posIndexList[i][j];
 				//                std::cout<<"boundries "<<i <<" "<<j+1<<" "<<boundries2[i][j+1]<<std::endl;
 			}
 		}
@@ -341,6 +335,7 @@ int main(int argc, char *argv[])
 
 
 
+                std::cout<<"boundires2[0][0]="<<boundries2[0][0]<<endl;
 		swapDataHead(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
 		t2 = clock() - t1;
 		t1 = t2;
@@ -417,9 +412,10 @@ int main(int argc, char *argv[])
 		// Read in 501
 
 		std::vector<dataStruct> searchDataArray;
-		std::string filename = "/home/tag4c/datafile00501.bin";
+		std::string filename = "/home/dtl2d/datafile00501.bin";
 
 		readFile(filename, searchDataArray, linesToRead);
+
 //		std::cout << "line388\n";
 		//std::cout << "501: " << searchDataArray[0].coordinates[0] << std::endl;
 		// sort it
@@ -447,8 +443,8 @@ int main(int argc, char *argv[])
 			kdTree_search(tree, radius, sp, treeMemSize - 1, tempNeigh);
 			neighPoints[i] = tempNeigh;
 		}
-		
-		vector<vector<point> > pointsVec(linesToRead);
+
+vector<vector<point> > pointsVec(linesToRead);
 		for(i=0;i<linesToRead;i++){
 		  int numOfNeiPoints = neighPoints[i].size();
 		  point tempP;
@@ -463,7 +459,8 @@ int main(int argc, char *argv[])
 	
 		recNeighPoints(pointsVec,linesToRead,worldSize);
 	
-		cout << myrank << " :" << pointsVec[804].size() << endl;
+cout << myrank << " :" << pointsVec[804].size() << endl;
+
 		// do something.. search...
 
 		// for each line in 501, we need to find the number of points in the kd tree within a certain radius
@@ -607,7 +604,7 @@ int main(int argc, char *argv[])
 			//	std::cout << myrank << " : " << posIndexList[boundries[i]].size() << std::endl;
 			for (j = 0; j < worldSize - 1; j++) {	//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
 
-				boundries2[i][j + 1] = posIndexList[i][boundries[j + 1]];
+				boundries2[i][j + 1] = posIndexList[i][j];
 				//std::cout<<"boundries "<<i <<" "<<j+1<<" "<<boundries2[i][j+1]<<std::endl;
 			}
 
@@ -667,6 +664,7 @@ int main(int argc, char *argv[])
 		sp[2] = 0.0;
 
 		double radius = 0.1;
+
 		//vector<int> neighPoints(0);
 
 		//kdTree_search(tree, radius, sp, treeMemSize - 1, neighPoints);
@@ -680,10 +678,10 @@ int main(int argc, char *argv[])
 
 
 		MPI_Bcast(&searchDataArray.front(), linesToRead, MPI_dataArray, 0, MPI_COMM_WORLD);
-
 		//std::cout << myrank << ": done\n";
 		//searchDataArray.resize(linesToRead);
 		//std::cout << searchDataArray[0].coordinates[0] << std::endl;
+
 		// call kdtree_search on every point.
 		/*double *sp;
 		sp = new double [3];
@@ -693,16 +691,15 @@ int main(int argc, char *argv[])
 
 		for (i = 0; i < searchDataArray.size(); i++)
 		{
-		  sp[0] = searchDataArray[i].coordinates[0];
-		  sp[1] = searchDataArray[i].coordinates[1];
-		  sp[2] = searchDataArray[i].coordinates[2];
-		  kdTree_search(tree, radius, sp, treeMemSize - 1, tempNeigh);
-		  neighPoints[i] = tempNeigh;
-		  //cout << i << " (" <<tempNeigh.size() << ")" << endl; 
-		  tempNeigh.clear();
+			sp[0] = searchDataArray[i].coordinates[0];
+			sp[1] = searchDataArray[i].coordinates[1];
+			sp[2] = searchDataArray[i].coordinates[2];
+			kdTree_search(tree, radius, sp, treeMemSize - 1, tempNeigh);
+			neighPoints[i] = tempNeigh;
+			tempNeigh.clear();
 		}
-	      
-		vector<int> pointsPosIndex(linesToRead+1);    
+
+vector<int> pointsPosIndex(linesToRead+1);    
 		pointsPosIndex[0] = 0;
 		vector<point> pointsVec(0);
 		for(i=0;i<linesToRead;i++){
@@ -716,17 +713,8 @@ int main(int argc, char *argv[])
 		    pointsVec.push_back(tempP);
 		  }
 		}
-
 		cout << myrank << " : "<< neighPoints[804].size() << endl;
-		sendNeighPoints(pointsPosIndex,pointsVec);
-
-		// do someother stuff.
-
-		//verifySearch(dataArrayList[0], radius, sp);
-
-		// write new files
-
-		//std::cout << "line633\n";
+sendNeighPoints(pointsPosIndex,pointsVec);
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		std::cout << "node " << myrank << " done\n";
