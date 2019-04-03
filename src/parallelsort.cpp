@@ -445,24 +445,9 @@ int main(int argc, char *argv[])
 			//neighPoints[i] = tempNeigh;
 			numOfNeighPoints[i] = count;
 		}
-		/*
-		cout << myrank << "444" << endl;
-		vector<vector<point> > pointsVec(linesToRead);
-		for(i=0;i<linesToRead;i++){
-		  int numOfNeiPoints = neighPoints[i].size();
-		  pointsVec[i].resize(numOfNeiPoints);
-		  for(j=0;j<numOfNeiPoints;j++){
-		    for(int k=0;k<3;k++){
-		      pointsVec[i][j].coordinates[k] = tree[neighPoints[i][j]].cent[k];
-		    }
-		    // pointsVec[i].push_back(tempP);
-		  }
-		  }*/
-		//cout << myrank << " :" << pointsVec[804].size() << endl;
-	
-//		recNeighPoints(pointsVec,linesToRead,worldSize);
-	
-//cout << myrank << " :" << pointsVec[804].size() << endl;
+		cout << "before recive: " << numOfNeighPoints[0]<<endl;
+		recNeighPoints(numOfNeighPoints,linesToRead,worldSize);
+		cout <<"after recive: " << numOfNeighPoints[0]<<endl;
 
 		// do something.. search...
 
@@ -704,28 +689,7 @@ int main(int argc, char *argv[])
 			numOfNeighPoints[i] = count;
 			//tempNeigh.clear();
 		}
-		/*
-		cout << myrank << "333" << endl;
-		vector<int> pointsPosIndex(linesToRead+1);    
-		pointsPosIndex[0] = 0;
-		int totalPoints = 0;
-		for(i=0;i<linesToRead;i++){
-		  int numOfNeiPoints = neighPoints[i].size();
-		  pointsPosIndex[i+1] = pointsPosIndex[i] + numOfNeiPoints;
-		  totalPoints += numOfNeiPoints;
-		}
-		vector<point> pointsVec(totalPoints);
-		for(i=0;i<linesToRead;i++){
-		  int numOfNeiPoints = neighPoints[i].size();
-		  for(j=0;j<numOfNeiPoints;j++){
-		    int index = pointsPosIndex[i] + j;
-		    for(int k=0;k<3;k++){
-		      pointsVec[index].coordinates[k] = tree[neighPoints[i][j]].cent[k];
-		    }
-		  }
-		  }*/
-		//cout << myrank << " : "<< neighPoints[804].size() << endl;
-//		sendNeighPoints(pointsPosIndex,pointsVec);
+		sendNeighPoints(numOfNeighPoints,linesToRead);
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		std::cout << "node " << myrank << " done\n";

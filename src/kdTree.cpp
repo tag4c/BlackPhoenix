@@ -99,7 +99,7 @@ if(dim==0){
   kdTree(data, id*2+1,mid+1, right, nodes);
 }
 
-void kdTree_search(node* nodes, double radius, double* sp, int maxNode, int count, int nodeNum)
+void kdTree_search(node* nodes, double radius, double* sp, int maxNode, int& count, int nodeNum)
 {
   double spToCent = dis(sp,nodes[nodeNum].cent);
   double maxNodeLen = nodes[nodeNum].length;

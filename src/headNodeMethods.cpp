@@ -162,55 +162,14 @@ void recvLocalPercentile(std::vector <double> &localPercentile, int &worldSize, 
 	}
 }
 
-void recNeighPoints(std::vector<std::vector<point> >& pointsVec, int& linesToRead, int& worldSize)
+void recNeighPoints(std::vector<int>& numOfNeighPoints, int& linesToRead, int& worldSize)
 {
-  int blockSize[1] = {3};
-  MPI_Datatype MPI_point[1] = {MPI_DOUBLE};
-  MPI_Datatype MPI_pointArray;
-  MPI_Aint offsets[1];
-  offsets[0] = offsetof(point,coordinates);
-  MPI_Type_create_struct(1,blockSize,offsets,MPI_point,&MPI_pointArray);
-  MPI_Type_commit(&MPI_pointArray);//create the point array
-  MPI_Status status0,status1,status2;
-  std::vector<std::vector<int> > posIndex(worldSize-1);
-  std::vector<std::vector<point> > tempP2DVec(worldSize-1);
+  MPI_Status status;
   for(int i=1;i<worldSize;i++){
-    int tempnumOfPVec;
-    std::vector<int> tempPosIndex(linesToRead+1);
-    MPI_Recv(&tempPosIndex.front(),linesToRead+1,MPI_INT,i,0,MPI_COMM_WORLD,&status0);
-    MPI_Recv(&tempnumOfPVec,1,MPI_INT,i,0,MPI_COMM_WORLD,&status1);
-    std::vector<point> tempPVec(tempnumOfPVec);
-    MPI_Recv(&tempPVec.front(),tempnumOfPVec,MPI_pointArray,i,0,MPI_COMM_WORLD,&status2);
-    posIndex[i-1] = tempPosIndex;
-    tempP2DVec[i-1] = tempPVec;
-  }
-  vector<int> totalPoints(linesToRead+1);
-  totalPoints[0] = 0;
-  for(int i=1;i<linesToRead+1;i++){
-    totalPoints[i] = 0;
-    for(int j=0;j<worldSize-1;j++){
-      totalPoints[i] += posIndex[j][i];
-    }
-  }
-  
-  for(int j=0;j<linesToRead;j++){
-    int numOfPointsInHeadNode = pointsVec[j].size();
-    int numOfPoints = totalPoints[j+1] - totalPoints[j];
-    vector<point> tempPoints(numOfPointsInHeadNode);
-    tempPoints = pointsVec[j];
-    pointsVec[j].reserve(numOfPointsInHeadNode + numOfPoints);
-    pointsVec[j].resize(numOfPointsInHeadNode + numOfPoints);
-    for(int k=0;k<numOfPointsInHeadNode;k++){
-      pointsVec[j][k] = tempPoints[k];
-    }
-    int count = numOfPointsInHeadNode;
-    for(int i=0;i<worldSize-1;i++){
-      int numOfPointsInWorkNode = posIndex[i][j+1] - posIndex[i][j];
-      for(int k=0;k<numOfPointsInWorkNode;k++){
-    	int index = posIndex[i][j] + k;
-    	pointsVec[j][index+count] = tempP2DVec[i][index];
-      }
-      count = count + numOfPointsInWorkNode;
+    std::vector<int> tempNeighPoints(linesToRead);
+    MPI_Recv(&tempNeighPoints.front(),linesToRead,MPI_INT,i,0,MPI_COMM_WORLD,&status);
+    for(int j=0;j<linesToRead;j++){
+      numOfNeighPoints[j] += tempNeighPoints[j];
     }
   }
 }
