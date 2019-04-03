@@ -172,6 +172,8 @@ void recNeighPoints(std::vector<std::vector<point> >& pointsVec, int& linesToRea
   MPI_Type_create_struct(1,blockSize,offsets,MPI_point,&MPI_pointArray);
   MPI_Type_commit(&MPI_pointArray);//create the point array
   MPI_Status status0,status1,status2;
+  std::vector<std::vector<int> > posIndex(worldSize-1);
+  std::vector<std::vector<point> > tempP2DVec(worldSize-1);
   for(int i=1;i<worldSize;i++){
     int tempnumOfPVec;
     std::vector<int> tempPosIndex(linesToRead+1);
@@ -179,12 +181,36 @@ void recNeighPoints(std::vector<std::vector<point> >& pointsVec, int& linesToRea
     MPI_Recv(&tempnumOfPVec,1,MPI_INT,i,0,MPI_COMM_WORLD,&status1);
     std::vector<point> tempPVec(tempnumOfPVec);
     MPI_Recv(&tempPVec.front(),tempnumOfPVec,MPI_pointArray,i,0,MPI_COMM_WORLD,&status2);
-    for(int j=0;j<linesToRead;j++){
-      int numOfPoints = tempPosIndex[j+1] - tempPosIndex[j];
-      for(int k=0;k<numOfPoints;k++){
-    	int index = tempPosIndex[j] + k;
-    	pointsVec[j].push_back(tempPVec[index]);
+    posIndex[i-1] = tempPosIndex;
+    tempP2DVec[i-1] = tempPVec;
+  }
+  vector<int> totalPoints(linesToRead+1);
+  totalPoints[0] = 0;
+  for(int i=1;i<linesToRead+1;i++){
+    totalPoints[i] = 0;
+    for(int j=0;j<worldSize-1;j++){
+      totalPoints[i] += posIndex[j][i];
+    }
+  }
+  
+  for(int j=0;j<linesToRead;j++){
+    int numOfPointsInHeadNode = pointsVec[j].size();
+    int numOfPoints = totalPoints[j+1] - totalPoints[j];
+    vector<point> tempPoints(numOfPointsInHeadNode);
+    tempPoints = pointsVec[j];
+    pointsVec[j].reserve(numOfPointsInHeadNode + numOfPoints);
+    pointsVec[j].resize(numOfPointsInHeadNode + numOfPoints);
+    for(int k=0;k<numOfPointsInHeadNode;k++){
+      pointsVec[j][k] = tempPoints[k];
+    }
+    int count = numOfPointsInHeadNode;
+    for(int i=0;i<worldSize-1;i++){
+      int numOfPointsInWorkNode = posIndex[i][j+1] - posIndex[i][j];
+      for(int k=0;k<numOfPointsInWorkNode;k++){
+    	int index = posIndex[i][j] + k;
+    	pointsVec[j][index+count] = tempP2DVec[i][index];
       }
+      count = count + numOfPointsInWorkNode;
     }
   }
 }

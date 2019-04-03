@@ -62,7 +62,15 @@ void kdTree(vector<dataStruct> &data, int id, int left, int right, node *nodes){
   if(temp[1]>temp[0]&&temp[1]>=temp[2])
     dim=1;
   //sort along that axis
-  sortPrep(data,dim,left,right);
+if(dim==0){
+		  std::sort(&data[left],&data[right],compareFunDim0);
+		}
+		else if(dim==1){
+		  std::sort(&data[left],&data[right],compareFunDim1);
+		}
+		else{
+		  std::sort(&data[left],&data[right],compareFunDim2);
+}
   //split array in half
   int mid=(right+left)/2;
   //find center points of x y z
@@ -91,25 +99,26 @@ void kdTree(vector<dataStruct> &data, int id, int left, int right, node *nodes){
   kdTree(data, id*2+1,mid+1, right, nodes);
 }
 
-void kdTree_search(node* nodes, double radius, double* sp, int maxNode, vector<int>& neighPoints, int nodeNum)
+void kdTree_search(node* nodes, double radius, double* sp, int maxNode, int count, int nodeNum)
 {
   double spToCent = dis(sp,nodes[nodeNum].cent);
   double maxNodeLen = nodes[nodeNum].length;
   if(spToCent < radius + maxNodeLen){
     if(nodes[nodeNum].below == 1){
-      neighPoints.push_back(nodeNum);
+      //neighPoints.push_back(nodeNum);
+      count++;
     }
     else{
       int subNodeNum1 = nodeNum*2;
       if(subNodeNum1 > maxNode){
 	return;
       }
-      kdTree_search(nodes,radius,sp,maxNode,neighPoints,subNodeNum1);
+      kdTree_search(nodes,radius,sp,maxNode,count,subNodeNum1);
       int subNodeNum2 = nodeNum*2+1;
       if(subNodeNum2 > maxNode){
 	return;
       }
-      kdTree_search(nodes,radius,sp,maxNode,neighPoints,subNodeNum2);
+      kdTree_search(nodes,radius,sp,maxNode,count,subNodeNum2);
     }
   }
   else{

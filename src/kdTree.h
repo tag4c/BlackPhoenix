@@ -1,6 +1,7 @@
 #include <vector>
 #include "sortPrep.h"
 #include "math.h"
+#include <algorithm>
 using namespace std;
 #ifndef DATA_H 
 #define DATA_H
@@ -22,6 +23,6 @@ double length;
 };
 #endif
 void kdTree(vector<dataStruct>& data,int id,int left, int right,node *nodes);
-void kdTree_search(node* nodes, double radius, double* sp, int MaxNode, vector<int>& neighPoints, int nodeNum=1);
+void kdTree_search(node* nodes, double radius, double* sp, int MaxNode, int count, int nodeNum=1);
 double dis(double* p1, double* p2);
 void verifySearch(vector<dataStruct>& data, double radius, double* sp);
