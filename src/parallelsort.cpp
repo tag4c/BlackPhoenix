@@ -1,4 +1,5 @@
 /* Black Phoenix Parallel Sort main routine    */
+	int maxNodes;
 
 /* Header files*/
 
@@ -65,6 +66,7 @@ int main(int argc, char *argv[])
 	int maxNodes;
 	int columnToSort = 0;
 	int linesToRead = 0;
+	int linesToSearch = 0;
 	std::string path;
 	clock_t start = clock();
 
@@ -75,7 +77,8 @@ int main(int argc, char *argv[])
 	if (argc > 1)
 	{
 		linesToRead = atoi(argv[1]);
-		path = argv[2];
+                linesToSearch = atoi(argv[2]);
+		path = argv[3];
 	}
 
 	/* MPI Setup */
@@ -116,7 +119,7 @@ int main(int argc, char *argv[])
 	if (myrank == 0)
 	{
 		//std::cout << "Starting head node\n";
-		clock_t  t1, t2;
+		clock_t  t1, t2,t3;
 		t1 = start;
 		/* Have this node read all data in and send it out first? */
 		MPI_Request request;
@@ -126,8 +129,10 @@ int main(int argc, char *argv[])
 		int fileNum = 0;
 		filesPerNode = new int [worldSize];
 		ofstream timeData;
-		timeData.open("timing.txt");
+		timeData.open("timing.csv",std::ofstream::out|std::ofstream::app);
+		//timeData.open("timing.csv");
 
+                timeData<<linesToRead<<","<<linesToSearch<<",";
 		std::string dirpath = path;
 		std::vector <std::vector<string>> fileEachNode(worldSize);
 
@@ -249,7 +254,7 @@ int main(int argc, char *argv[])
 		MPI_Barrier(MPI_COMM_WORLD);
 		t2 = clock() - t1;
 		t1 = t2;
-		timeData << "time to find where data should go:" << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
+		timeData << (float(t2) / CLOCKS_PER_SEC) << "," ;
 		int *binSizes;
 		int *binSizes2;
 		binSizes = new int[numOfPercentiles];
@@ -309,7 +314,7 @@ int main(int argc, char *argv[])
 			} else {
 				//	std::cout << "setting boundary...\n";
 				boundries[index] = i - 1;
-			cout << "node " << index - 1 << " will get " << temp << " elements "<< fileNum <<"\n";
+		//	cout << "node " << index - 1 << " will get " << temp << " elements "<< fileNum <<"\n";
 				index++;
 				temp = binSizes[i];
 			}
@@ -338,14 +343,14 @@ int main(int argc, char *argv[])
                 std::cout<<"boundires2[0][0]="<<boundries2[0][0]<<endl;
 		swapDataHead(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
 		t2 = clock() - t1;
-		t1 = t2;
-		timeData << "time to send data:" << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
+		t1 = t2;;
+		timeData << (float(t2) / CLOCKS_PER_SEC) << ",";
 		std::cout << "Right before sortPrep!!\n";
 		sortPrep(dataArrayList[0], columnToSort, 0, dataArrayList[0].size() - 1);
-		//std::cout << "done\n";
+		MPI_Barrier(MPI_COMM_WORLD);
 		t2 = clock() - t1;
 		t1 = t2;
-		timeData << "final sort:" << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
+		timeData << (float(t2) / CLOCKS_PER_SEC) << ",";
 
 		// write new files
 
@@ -376,9 +381,10 @@ int main(int argc, char *argv[])
 
 
 
-		t2 = clock() - start;
-		timeData << "final time from head node: " << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
-
+		t3 = clock() - start;
+		timeData << (float(t3) / CLOCKS_PER_SEC) << ",";
+		//timeData << "total time for parallel sort: " << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
+		
 		// Build KD Tree of sorted Data
 
 		/* Create KD Tree */
@@ -390,6 +396,11 @@ int main(int argc, char *argv[])
 		tree = new node[treeMemSize];
 		std::cout << "some message.\n";
 		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
+                MPI_Barrier(MPI_COMM_WORLD);
+		t2 = clock() - t1;
+		t1 = t2;
+		timeData << (float(t2) / CLOCKS_PER_SEC) << ",";
+
 
 		std::cout << "line366\n";
 		/*
@@ -412,18 +423,18 @@ int main(int argc, char *argv[])
 		// Read in 501
 
 		std::vector<dataStruct> searchDataArray;
-		std::string filename = "/home/wd2g/datafile00501.bin";
+		std::string filename = "/home/dtl2d/datafile00501.bin";
 
-		readFile(filename, searchDataArray, linesToRead);
+		readFile(filename, searchDataArray, linesToSearch);
 
 //		std::cout << "line388\n";
 		//std::cout << "501: " << searchDataArray[0].coordinates[0] << std::endl;
 		// sort it
-		sortPrep(searchDataArray, columnToSort, 0, linesToRead - 1);
+		sortPrep(searchDataArray, columnToSort, 0,linesToSearch-1 );
 		//std::cout << searchDataArray[0].coordinates[0] << std::endl;
 		// send out 501
 		//	std::cout << "line394\n";
-		MPI_Bcast(&searchDataArray.front(), linesToRead, MPI_dataArray, 0, MPI_COMM_WORLD);
+		MPI_Bcast(&searchDataArray.front(), linesToSearch, MPI_dataArray, 0, MPI_COMM_WORLD);
 
 		//std::cout << myrank << ": done\n";
 //std::cout << "line398\n";
@@ -431,7 +442,7 @@ int main(int argc, char *argv[])
 		sp = new double [3];
 		double radius = 0.1;
 		//vector<vector<int>> neighPoints(linesToRead);
-		vector<int> numOfNeighPoints(linesToRead);
+		vector<int> numOfNeighPoints(linesToSearch);
 		//std::cout << "line406\n";
 		for (i = 0; i < searchDataArray.size(); i++)
 		{
@@ -446,8 +457,15 @@ int main(int argc, char *argv[])
 			numOfNeighPoints[i] = count;
 		}
 		cout << "before recive: " << numOfNeighPoints[0]<<endl;
-		recNeighPoints(numOfNeighPoints,linesToRead,worldSize);
+		recNeighPoints(numOfNeighPoints,linesToSearch,worldSize);
 		cout <<"after recive: " << numOfNeighPoints[0]<<endl;
+                ofstream output;
+                output.open("FinalOutput.txt");
+                output<<"Node ID	Points in radius: ..1		.01		.001\n"; 
+                for(int i=0;i<linesToSearch;i++){
+                output<<searchDataArray[i].id<<"			"<<numOfNeighPoints[i]<<endl;
+                 }
+                output.close();
 
 		// do something.. search...
 
@@ -456,6 +474,8 @@ int main(int argc, char *argv[])
 		// print some stuff to file somewhere..
 		//std::cout << "line423\n";
 		MPI_Barrier(MPI_COMM_WORLD);
+		t3 = clock() - start;
+		timeData << (float(t3) / CLOCKS_PER_SEC) << "\n";
 		std::cout << "head node done\n";
 
 
@@ -588,8 +608,6 @@ int main(int argc, char *argv[])
 			boundries2[i][worldSize] = linesToRead;
 		}
 		for (int i = 0; i < filesPerNode[myrank]; i++) {
-			//	std::cout << i << std::endl;
-			//	std::cout << myrank << " : " << posIndexList[boundries[i]].size() << std::endl;
 			for (j = 0; j < worldSize - 1; j++) {	//cout<<"b"<<i+1<<"="<<posIndex[boundries[i+1]]<<endl;
 
 				boundries2[i][j + 1] = posIndexList[i][j];
@@ -610,6 +628,7 @@ int main(int argc, char *argv[])
 		// sort
 
 		sortPrep(dataArrayList[0], columnToSort, 0, dataArrayList[0].size() - 1);
+		MPI_Barrier(MPI_COMM_WORLD);
 		/*
 				for (j = 0; j < 1; j++)
 				{
@@ -641,6 +660,7 @@ int main(int argc, char *argv[])
 		tree = new node[treeMemSize];
 
 		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
+		MPI_Barrier(MPI_COMM_WORLD);
 
 			std::cout << myrank << ": passed kd tree in worker node\n";
 
@@ -661,11 +681,11 @@ int main(int argc, char *argv[])
 
 		// Receive data from head node in file 501.
 		std::vector<dataStruct> searchDataArray;
-		searchDataArray.reserve(linesToRead);
-		searchDataArray.resize(linesToRead);
+		searchDataArray.reserve(linesToSearch);
+		searchDataArray.resize(linesToSearch);
 
 
-		MPI_Bcast(&searchDataArray.front(), linesToRead, MPI_dataArray, 0, MPI_COMM_WORLD);
+		MPI_Bcast(&searchDataArray.front(), linesToSearch, MPI_dataArray, 0, MPI_COMM_WORLD);
 		//std::cout << myrank << ": done\n";
 		//searchDataArray.resize(linesToRead);
 		//std::cout << searchDataArray[0].coordinates[0] << std::endl;
@@ -676,7 +696,7 @@ int main(int argc, char *argv[])
 		double radius = 0.1;*/
 		//vector<vector<int>> neighPoints(linesToRead);
 		//vector<int> tempNeigh;
-		vector<int> numOfNeighPoints(linesToRead);
+		vector<int> numOfNeighPoints(linesToSearch);
 
 		for (i = 0; i < searchDataArray.size(); i++)
 		{
@@ -689,7 +709,7 @@ int main(int argc, char *argv[])
 			numOfNeighPoints[i] = count;
 			//tempNeigh.clear();
 		}
-		sendNeighPoints(numOfNeighPoints,linesToRead);
+		sendNeighPoints(numOfNeighPoints,linesToSearch);
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		std::cout << "node " << myrank << " done\n";
