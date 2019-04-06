@@ -4,3 +4,4 @@ src/convertToAscii
 src/convertToBinary
 build/
 parallelsort
+src/asciiToBinary

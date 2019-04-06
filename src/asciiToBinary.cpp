@@ -69,17 +69,17 @@ int main()
     std::vector<std::string> dirListing;
     std::vector<std::string> dataFileList;
     std::string path = "../../localstorage/public/coms7900-data/";
-    std::string outpath = "";
+    std::string outpath = "../../localstorage/public/BPData/";
     std::string filepath; // reusable string to specify full string path
    // std::cout << "dataArray size: " << dataArray.size() << std::endl;
-   // read_directory(path, dirListing);
+    read_directory(path, dirListing);
 
     //std::cout << "Finished reading directory." << std::endl;
 
     fileCount = 0;
-   /* for (i = 0; i < dirListing.size(); i++)
+    for (i = 0; i < dirListing.size(); i++)
     {
-    	if (dirListing[i] == ".." || dirListing[i] == "." || dirListing[i] == "binary" || dirListing[i] == "BlackPhoenixBinary")
+    	if (dirListing[i] == "BPData" || dirListing[i] == ".." || dirListing[i] == "." || dirListing[i] == "binary" || dirListing[i] == "BlackPhoenixBinary" || dirListing[i] == "datafile00501.bin")
     	{
     		continue;
 
@@ -93,13 +93,16 @@ int main()
     }
 
     std::cout << "Finished parsing file list" << std::endl;
-*/
-    for (i = 0; i < 1; i++)
-    {
-        //filepath = path + dataFileList[i];
-	filepath = path + "datafile00501.txt";
-        std::cout << "Reading: " << filepath << std::endl;
 
+    for (i = 0; i < dataFileList.size(); i++)
+    {
+        filepath = path + dataFileList[i];
+	//filepath = path + "datafile00501.txt";
+        std::cout << "Reading: " << filepath << std::endl;
+    
+	std::string fileNum = dataFileList[i].substr(10, 3);	
+	long long int fileIndex = std::stoll(fileNum);
+	long long int id = (fileIndex -1)*20000000;
         std::ifstream inFile(filepath);
         if ( inFile.is_open() )
         {
@@ -109,11 +112,12 @@ int main()
               //  while (lineCount < 1000000)
             {
                 inFile >> temp;
-		lineData.id = lineCount;
+		lineData.id = id;
                 inFile >> lineData.col1;
                 inFile >> lineData.col2;
                 inFile >> lineData.col3;
                 dataArray.push_back(lineData);
+		id++;
                 lineCount++;
     //            if(lineCount % 1000000 == 0){
      //           std::cout << lineCount << std::endl;
@@ -132,8 +136,10 @@ int main()
             std::cout << filepath << std::endl;
             exit(1);
         }
-        //filepath = outpath + dataFileList[i].substr(0, dataFileList[i].size()-4) + ".bin";
-        filepath = outpath + "datafile00501.bin";
+	//printf("%.19lld\n", id);	
+	//std::cout << fileNum << std::endl;
+        filepath = outpath + dataFileList[i].substr(0, dataFileList[i].size()-4) + ".bin";
+    //    filepath = outpath + "datafile00501.bin";
         std::ofstream outFile(filepath, std::ios::binary | std::ios::out);
         std::cout << "Writing new file: " << filepath << std::endl;
         if (outFile.is_open())
@@ -145,6 +151,7 @@ int main()
                 outFile.write((char*)&dataArray[j].col1, 8);
                 outFile.write((char*)&dataArray[j].col2, 8);
                 outFile.write((char*)&dataArray[j].col3, 8);
+		id++;
             }
 
             outFile.close();
