@@ -69,10 +69,10 @@ void sendLocalPercentile(int &worldSize, std::vector <double> &localPercentile, 
 	MPI_Send(&localPercentile.front(), numOfBins - 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
 }
 
-void sendNeighPoints(std::vector<int>& numOfNeighPoints, int& linesToRead)
+void sendNeighPoints(std::vector<long long int>& numOfNeighPoints, int& linesToRead)
 {
   MPI_Request request;
-  MPI_Isend(&numOfNeighPoints.front(),linesToRead,MPI_INT,0,0,MPI_COMM_WORLD,&request);
+  MPI_Isend(&numOfNeighPoints.front(),linesToRead,MPI_LONG_LONG,0,0,MPI_COMM_WORLD,&request);
 }
 void recvGlobalPositionValue(std::vector <double> &globalPositionValueData)
 {

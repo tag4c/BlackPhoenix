@@ -49,4 +49,4 @@ void sendFilesToRead(int &worldSize, std::vector <std::vector<std::string>>  &fi
 void recvLocalPercentile(std::vector <double> &localPercentile, int &worldSize, MPI_Status &status, std::vector <std::vector <double>> &localPercentileList, int &numOfBins);
 void sendGlobalPositionValue(int &arraySize, std::vector <double> &globalPositionValueData);
 void swapDataHead(int &worldSize, std::vector<std::vector <dataStruct>> &dataArray, int &myrank, int **posIndex, int *filesPerNode);
-void recNeighPoints(std::vector<int>& recNeighPoints, int& linesToRead, int& worldSize);
+void recNeighPoints(std::vector<long long int>& recNeighPoints, int& linesToRead, int& worldSize);

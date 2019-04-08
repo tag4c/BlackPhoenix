@@ -162,12 +162,12 @@ void recvLocalPercentile(std::vector <double> &localPercentile, int &worldSize, 
 	}
 }
 
-void recNeighPoints(std::vector<int>& numOfNeighPoints, int& linesToRead, int& worldSize)
+void recNeighPoints(std::vector<long long int>& numOfNeighPoints, int& linesToRead, int& worldSize)
 {
   MPI_Status status;
   for(int i=1;i<worldSize;i++){
-    std::vector<int> tempNeighPoints(linesToRead);
-    MPI_Recv(&tempNeighPoints.front(),linesToRead,MPI_INT,i,0,MPI_COMM_WORLD,&status);
+    std::vector<long long int> tempNeighPoints(linesToRead);
+    MPI_Recv(&tempNeighPoints.front(),linesToRead,MPI_LONG_LONG,i,0,MPI_COMM_WORLD,&status);
     for(int j=0;j<linesToRead;j++){
       numOfNeighPoints[j] += tempNeighPoints[j];
     }

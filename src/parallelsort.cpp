@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 		timeData.open("timing.csv",std::ofstream::out|std::ofstream::app);
 		//timeData.open("timing.csv");
 
-                timeData<<linesToRead<<","<<linesToSearch<<",";
+                timeData<<worldSize<<","<<linesToRead<<","<<linesToSearch<<",";
 		std::string dirpath = path;
 		std::vector <std::vector<string>> fileEachNode(worldSize);
 
@@ -440,9 +440,9 @@ int main(int argc, char *argv[])
 //std::cout << "line398\n";
 		double *sp;
 		sp = new double [3];
-		double radius = 0.1;
+		double radius = 0.01;
 		//vector<vector<int>> neighPoints(linesToRead);
-		vector<int> numOfNeighPoints(linesToSearch);
+		vector<long long int> numOfNeighPoints(linesToSearch);
 		//std::cout << "line406\n";
 		for (i = 0; i < searchDataArray.size(); i++)
 		{
@@ -451,7 +451,7 @@ int main(int argc, char *argv[])
 			sp[0] = searchDataArray[i].coordinates[0];
 			sp[1] = searchDataArray[i].coordinates[1];
 			sp[2] = searchDataArray[i].coordinates[2];
-			int count = 0;
+			long long int count = 0;
 			kdTree_search(tree, radius, sp, treeMemSize - 1, count);
 			//neighPoints[i] = tempNeigh;
 			numOfNeighPoints[i] = count;
@@ -671,7 +671,7 @@ int main(int argc, char *argv[])
 		sp[1] = 0.0;
 		sp[2] = 0.0;
 
-		double radius = 0.1;
+		double radius = 0.01;
 
 		//vector<int> neighPoints(0);
 
@@ -696,14 +696,14 @@ int main(int argc, char *argv[])
 		double radius = 0.1;*/
 		//vector<vector<int>> neighPoints(linesToRead);
 		//vector<int> tempNeigh;
-		vector<int> numOfNeighPoints(linesToSearch);
+		vector<long long int> numOfNeighPoints(linesToSearch);
 
 		for (i = 0; i < searchDataArray.size(); i++)
 		{
 			sp[0] = searchDataArray[i].coordinates[0];
 			sp[1] = searchDataArray[i].coordinates[1];
 			sp[2] = searchDataArray[i].coordinates[2];
-			int count = 0;
+			long long int count = 0;
 			kdTree_search(tree, radius, sp, treeMemSize - 1, count);
 			//neighPoints[i] = tempNeigh;
 			numOfNeighPoints[i] = count;
