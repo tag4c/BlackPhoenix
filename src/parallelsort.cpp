@@ -452,7 +452,7 @@ int main(int argc, char *argv[])
 			sp[1] = searchDataArray[i].coordinates[1];
 			sp[2] = searchDataArray[i].coordinates[2];
 			long long int count = 0;
-			kdTree_search(tree, radius, sp, treeMemSize - 1, count);
+			kdTree_search(tree, radius, sp, count);
 			//neighPoints[i] = tempNeigh;
 			numOfNeighPoints[i] = count;
 		}
@@ -704,7 +704,7 @@ int main(int argc, char *argv[])
 			sp[1] = searchDataArray[i].coordinates[1];
 			sp[2] = searchDataArray[i].coordinates[2];
 			long long int count = 0;
-			kdTree_search(tree, radius, sp, treeMemSize - 1, count);
+			kdTree_search(tree, radius, sp, count);
 			//neighPoints[i] = tempNeigh;
 			numOfNeighPoints[i] = count;
 			//tempNeigh.clear();
