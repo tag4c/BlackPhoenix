@@ -99,39 +99,47 @@ if(dim==0){
   kdTree(data, id*2+1,mid+1, right, nodes);
 }
 
-void kdTree_search(node* nodes, double radius, double* sp, int maxNode, long long int& count, int nodeNum)
+void kdTree_search(const node* nodes, const double& radius, const double* sp, long long int& count)
 {
-  double spToCent = dis(sp,nodes[nodeNum].cent);
-  double maxNodeLen = nodes[nodeNum].length;
-  if(spToCent < radius + maxNodeLen){
-    if(nodes[nodeNum].below == 1){
-      //neighPoints.push_back(nodeNum);
-      count++;
-    }
-    else{
-      int subNodeNum1 = nodeNum*2;
-      if(subNodeNum1 > maxNode){
-	return;
+  int startNode = 1;
+  vector<int> preSearchList(1);
+  int countPreList = 1;
+  preSearchList[0] = startNode;
+  while(countPreList > 0){
+    //cout << "countPreList = " << countPreList << endl;
+    int countNowList = 0;
+    //int posIndex = 0;
+    int maxList = 2*countPreList;
+    //cout << "maxList = " << maxList << endl;
+    vector<int> nowSearchList(maxList);
+    for(int i=0;i<countPreList;i++){
+      int nodeNum = preSearchList[i];
+      double spToCent = dis(sp,nodes[nodeNum].cent);
+      double maxNodeLen = nodes[nodeNum].length;
+      if(spToCent > radius + maxNodeLen){
+	continue;
       }
-      kdTree_search(nodes,radius,sp,maxNode,count,subNodeNum1);
-      int subNodeNum2 = nodeNum*2+1;
-      if(subNodeNum2 > maxNode){
-	return;
+      if(nodes[nodeNum].below == 1){
+	count++;
+	continue;
       }
-      kdTree_search(nodes,radius,sp,maxNode,count,subNodeNum2);
+      nowSearchList[countNowList] = 2*preSearchList[i];
+      nowSearchList[countNowList+1] = nowSearchList[countNowList] + 1; 
+      countNowList += 2;
     }
-  }
-  else{
-    return;
+    countPreList = countNowList;
+    preSearchList.clear();
+    preSearchList.resize(maxList);
+    preSearchList = nowSearchList;
+    nowSearchList.clear();
   }
 }
 
-
-double dis(double* p1, double* p2)
+double dis(const double* p1, const double* p2)
 { 
   double distance = 0;
   for(int i=0;i<3;i++){
-    distance += pow(p1[i] - p2[i], 2);
+    distance += (p1[i] - p2[i])*(p1[i] - p2[i]);
   }
   distance = sqrt(distance);
   return distance;
