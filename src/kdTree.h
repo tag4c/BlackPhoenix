@@ -14,15 +14,12 @@ double coordinates[3];//std::vector<double> coordinates;
 #ifndef DATA_N 
 #define DATA_N
 struct node{
-int id;
 int below;
 double cent[3];
-double min[3];
-double max[3];
 double length; 
 };
 #endif
-void kdTree(vector<dataStruct>& data,int id,int left, int right,node *nodes);
+void kdTree(vector<dataStruct>& data, int id,int left, int right,node *nodes);
 void kdTree_search(const node* nodes, const double& radius, const double* sp, long long int& count);
 double dis(const double* p1, const double* p2);
 void verifySearch(vector<dataStruct>& data, double radius, double* sp);

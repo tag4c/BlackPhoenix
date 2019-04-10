@@ -6,94 +6,79 @@
 #include <iostream>
 using namespace std;
 void kdTree(vector<dataStruct> &data, int id, int left, int right, node *nodes){
-  int i,j,k;
-  int dim;
-  double temp[3];
   nodes[id].below=(right-left+1);
   //check if only one data point in node
   if(nodes[id].below==1){
-    nodes[id].id = id;
     nodes[id].cent[0] = data[left].coordinates[0];
     nodes[id].cent[1] = data[left].coordinates[1];
     nodes[id].cent[2] = data[left].coordinates[2];
-    nodes[id].min[0] = data[left].coordinates[0];
-    nodes[id].min[1] = data[left].coordinates[1];
-    nodes[id].min[2] = data[left].coordinates[2];
-    nodes[id].max[0] = data[left].coordinates[0];
-    nodes[id].max[1] = data[left].coordinates[1];
-    nodes[id].max[2] = data[left].coordinates[2];
     nodes[id].length = 0;
-    return;}
-  nodes[id].min[0]=data[left].coordinates[0];
-  nodes[id].min[1]=data[left].coordinates[1];
-  nodes[id].min[2]=data[left].coordinates[2];
-  nodes[id].max[0]=data[left].coordinates[0];
-  nodes[id].max[1]=data[left].coordinates[1];
-  nodes[id].max[2]=data[left].coordinates[2];
+    return;
+  }
+  double* min;
+  double* max;
+  min = new double[3];
+  max = new double[3];
+  for(int i=0;i<3;i++){
+    min[i] = data[left].coordinates[i];
+    max[i] = min[i];
+  }
+ 
   //find min max
-  for(i=left;i<=right;i++){
-    if(nodes[id].min[0]>data[i].coordinates[0]){
-      nodes[id].min[0]=data[i].coordinates[0];
-    }
-    if(nodes[id].min[1]>data[i].coordinates[1]){
-      nodes[id].min[1]=data[i].coordinates[1];
-    }
-    if(nodes[id].min[2]>data[i].coordinates[2]){
-      nodes[id].min[2]=data[i].coordinates[2];
-    }
-    if(nodes[id].max[0]<data[i].coordinates[0]){
-      nodes[id].max[0]=data[i].coordinates[0];
-    }
-    if(nodes[id].max[1]<data[i].coordinates[1]){
-      nodes[id].max[1]=data[i].coordinates[1];
-    }
-    if(nodes[id].max[2]<data[i].coordinates[2]){
-      nodes[id].max[2]=data[i].coordinates[2];
+  for(int i=left+1;i<=right;i++){
+    for(int j=0;j<3;j++){
+      if(min[j]>data[i].coordinates[j]){
+	min[j]=data[i].coordinates[j];
+      }
+      if(max[j]<data[i].coordinates[j]){
+	max[j]=data[i].coordinates[j];
+      }
     }
   }
+
   //find length of x y z
-  temp[0]=nodes[id].max[0]-nodes[id].min[0];
-  temp[1]=nodes[id].max[1]-nodes[id].min[1];
-  temp[2]=nodes[id].max[2]-nodes[id].min[2];
-  dim=0;
+  double* temp = new double[3];
+  temp[0]=max[0]-min[0];
+  temp[1]=max[1]-min[1];
+  temp[2]=max[2]-min[2];
+
+  int dim=0;
   //find max length of x y or z
   if(temp[2]>temp[0]&&temp[2]>=temp[1])
     dim=2;
   if(temp[1]>temp[0]&&temp[1]>=temp[2])
     dim=1;
+
   //sort along that axis
-if(dim==0){
-		  std::sort(&data[left],&data[right],compareFunDim0);
-		}
-		else if(dim==1){
-		  std::sort(&data[left],&data[right],compareFunDim1);
-		}
-		else{
-		  std::sort(&data[left],&data[right],compareFunDim2);
-}
+  if(dim==0){
+    std::sort(&data[left],&data[right],compareFunDim0);
+  }
+  else if(dim==1){
+    std::sort(&data[left],&data[right],compareFunDim1);
+  }
+  else{
+    std::sort(&data[left],&data[right],compareFunDim2);
+  }
+  
   //split array in half
   int mid=(right+left)/2;
   //find center points of x y z
-  nodes[id].cent[0]=(nodes[id].min[0]+nodes[id].max[0])/2;
-  nodes[id].cent[1]=(nodes[id].min[1]+nodes[id].max[1])/2;
-  nodes[id].cent[2]=(nodes[id].min[2]+nodes[id].max[2])/2;
-  double tempC[8];
-  //make corners
-  tempC[0]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
-  //tempC[1]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
-  //tempC[2]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
-  //tempC[3]=sqrt(pow(nodes[id].min[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
-  //tempC[4]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
-  //tempC[5]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].min[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
-  //tempC[6]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].min[2]-nodes[id].cent[2],2));
-  //tempC[7]=sqrt(pow(nodes[id].max[0]-nodes[id].cent[0],2)+pow(nodes[id].max[1]-nodes[id].cent[1],2)+pow(nodes[id].max[2]-nodes[id].cent[2],2));
-  nodes[id].length=tempC[0];
+  nodes[id].cent[0]=(min[0]+max[0])/2;
+  nodes[id].cent[1]=(min[1]+max[1])/2;
+  nodes[id].cent[2]=(min[2]+max[2])/2;
   
-  //find distance to farthest corner
-  //for(i=1;i<8;i++){
-  //  if(tempC[i]>nodes[id].length)
-  //    nodes[id].length=tempC[i];
-  //}
+  //find the length for this node
+  double tempC = 0;
+  for(int i=0;i<3;i++){
+    double tempFac = min[i] - nodes[id].cent[i];
+    tempC += tempFac*tempFac; 
+  }
+  tempC = sqrt(tempC);
+  nodes[id].length=tempC;
+
+  delete min;
+  delete max;
+  delete temp;
 
   kdTree(data, id*2, left, mid, nodes);
   kdTree(data, id*2+1,mid+1, right, nodes);
