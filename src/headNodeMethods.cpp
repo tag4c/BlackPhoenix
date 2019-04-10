@@ -116,7 +116,6 @@ void read_directory(const std::string& name, std::vector<std::string>& v)
 		}
 		temp.clear();
 	}
-
 	closedir(dirp);
 }
 
@@ -140,6 +139,7 @@ void sendFilesToRead(int &worldSize, std::vector <std::vector<string>>  &fileEac
 		{
 			//fileName = fileEachNode[i][j].c_str();
 			MPI_Send(fileEachNode[i][j].c_str(), 17, MPI_CHAR, i, 0, MPI_COMM_WORLD);
+                        //printf("%s\n",fileEachNode[i][j].c_str());
 
 		}
 

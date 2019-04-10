@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include "mpi.h"
 #include <time.h>
-
+#include <chrono>
 // Common library includes for everyone...
 
 // Specific includes for individually authored code
@@ -68,7 +68,8 @@ int main(int argc, char *argv[])
 	int linesToRead = 0;
 	int linesToSearch = 0;
 	std::string path;
-	clock_t start = clock();
+	//clock_t start = clock();
+	auto start=chrono::steady_clock::now();
 
 	/* Variable initialization */
 	//maxFiles = atoi(argv[1]);  // First command line argument for Number of files to read
@@ -119,8 +120,9 @@ int main(int argc, char *argv[])
 	if (myrank == 0)
 	{
 		//std::cout << "Starting head node\n";
-		clock_t  t1, t2,t3;
-		t1 = start;
+	//	clock_t  t1, t2,t3;
+               //auto t1,t2,t3; 
+	        auto	t1 = start;
 		/* Have this node read all data in and send it out first? */
 		MPI_Request request;
 		MPI_Status status;
@@ -252,9 +254,12 @@ int main(int argc, char *argv[])
 
 
 		MPI_Barrier(MPI_COMM_WORLD);
-		t2 = clock() - t1;
-		t1 = t2;
-		timeData << (float(t2) / CLOCKS_PER_SEC) << "," ;
+                 
+	        auto t2=chrono::steady_clock::now();
+		 //t2 = clock() - t1;
+		//t1 = t2;
+		timeData << float(chrono::duration_cast<chrono::milliseconds>(t2-t1).count())/1000.0<<"," ;
+                t1=t2;
 		int *binSizes;
 		int *binSizes2;
 		binSizes = new int[numOfPercentiles];
@@ -342,15 +347,21 @@ int main(int argc, char *argv[])
 
                 std::cout<<"boundires2[0][0]="<<boundries2[0][0]<<endl;
 		swapDataHead(worldSize, dataArrayList, myrank, boundries2, filesPerNode);
-		t2 = clock() - t1;
-		t1 = t2;;
-		timeData << (float(t2) / CLOCKS_PER_SEC) << ",";
+	        t2=chrono::steady_clock::now();
+		timeData << float(chrono::duration_cast<chrono::milliseconds>(t2-t1).count())/1000.0<<"," ;
+                t1=t2;
+		//t2 = clock() - t1;
+		//t1 = t2;;
+		//timeData << (float(t2) / CLOCKS_PER_SEC) << ",";
 		std::cout << "Right before sortPrep!!\n";
 		sortPrep(dataArrayList[0], columnToSort, 0, dataArrayList[0].size() - 1);
 		MPI_Barrier(MPI_COMM_WORLD);
-		t2 = clock() - t1;
-		t1 = t2;
-		timeData << (float(t2) / CLOCKS_PER_SEC) << ",";
+	        t2=chrono::steady_clock::now();
+		timeData << float(chrono::duration_cast<chrono::milliseconds>(t2-t1).count())/1000.0<<"," ;
+                t1=t2;
+		//t2 = clock() - t1;
+		//t1 = t2;
+		//timeData << (float(t2) / CLOCKS_PER_SEC) << ",";
 
 		// write new files
 
@@ -381,8 +392,10 @@ int main(int argc, char *argv[])
 
 
 
-		t3 = clock() - start;
-		timeData << (float(t3) / CLOCKS_PER_SEC) << ",";
+	        auto t3=chrono::steady_clock::now();
+		timeData << float(chrono::duration_cast<chrono::milliseconds>(t3-start).count())/1000<<"," ;
+		//t3 = clock() - start;
+		//timeData << (float(t3) / CLOCKS_PER_SEC) << ",";
 		//timeData << "total time for parallel sort: " << (float(t2) / CLOCKS_PER_SEC) << "s" << endl;
 		
 		// Build KD Tree of sorted Data
@@ -396,13 +409,17 @@ int main(int argc, char *argv[])
 		tree = new node[treeMemSize];
 		std::cout << "some message.\n";
 		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
+                dataArrayList[0].clear();
                 MPI_Barrier(MPI_COMM_WORLD);
-		t2 = clock() - t1;
-		t1 = t2;
-		timeData << (float(t2) / CLOCKS_PER_SEC) << ",";
+	        t2=chrono::steady_clock::now();
+		timeData << float(chrono::duration_cast<chrono::milliseconds>(t2-t1).count())/1000.0<<"," ;
+                t1=t2;
+		//t2 = clock() - t1;
+		//t1 = t2;
+		//timeData << (float(t2) / CLOCKS_PER_SEC) << ",";
 
 
-		std::cout << "line366\n";
+	//	std::cout << "line366\n";
 		/*
 				double *sp;
 				sp = new double [3];
@@ -455,6 +472,8 @@ int main(int argc, char *argv[])
 			kdTree_search(tree, radius, sp, count);
 			//neighPoints[i] = tempNeigh;
 			numOfNeighPoints[i] = count;
+                //        verifySearch(dataArrayList[0],radius,sp);
+                 //       cout<<"kdTree count: "<<count<<endl;
 		}
 		cout << "before recive: " << numOfNeighPoints[0]<<endl;
 		recNeighPoints(numOfNeighPoints,linesToSearch,worldSize);
@@ -474,8 +493,10 @@ int main(int argc, char *argv[])
 		// print some stuff to file somewhere..
 		//std::cout << "line423\n";
 		MPI_Barrier(MPI_COMM_WORLD);
-		t3 = clock() - start;
-		timeData << (float(t3) / CLOCKS_PER_SEC) << "\n";
+	        t3=chrono::steady_clock::now();
+		timeData << float(chrono::duration_cast<chrono::milliseconds>(t3-start).count())/1000<<"\n" ;
+		//t3 = clock() - start;
+		//timeData << (float(t3) / CLOCKS_PER_SEC) << "\n";
 		std::cout << "head node done\n";
 
 
@@ -660,9 +681,10 @@ int main(int argc, char *argv[])
 		tree = new node[treeMemSize];
 
 		kdTree(dataArrayList[0] , 1, 0, dataArrayList[0].size() - 1, tree);
+                dataArrayList[0].clear();
 		MPI_Barrier(MPI_COMM_WORLD);
 
-			std::cout << myrank << ": passed kd tree in worker node\n";
+			//std::cout << myrank << ": passed kd tree in worker node\n";
 
 		double *sp;
 		sp = new double [3];
