@@ -440,7 +440,7 @@ int main(int argc, char *argv[])
 		// Read in 501
 
 		std::vector<dataStruct> searchDataArray;
-		std::string filename = "/home/dtl2d/datafile00501.bin";
+		std::string filename = "/home/yw3c/datafile00501.bin";
 
 		readFile(filename, searchDataArray, linesToSearch);
 
@@ -455,6 +455,7 @@ int main(int argc, char *argv[])
 
 		//std::cout << myrank << ": done\n";
 //std::cout << "line398\n";
+		vector< vector<int> > searchListMtrx(2,vector<int>(pow(2,layers)));
 		double *sp;
 		sp = new double [3];
 		double radius = 0.01;
@@ -469,7 +470,7 @@ int main(int argc, char *argv[])
 			sp[1] = searchDataArray[i].coordinates[1];
 			sp[2] = searchDataArray[i].coordinates[2];
 			long long int count = 0;
-			kdTree_search(tree, radius, sp, count);
+			kdTree_search(tree,radius,sp,layers,searchListMtrx,count);
 			//neighPoints[i] = tempNeigh;
 			numOfNeighPoints[i] = count;
                 //        verifySearch(dataArrayList[0],radius,sp);
@@ -718,6 +719,7 @@ int main(int argc, char *argv[])
 		double radius = 0.1;*/
 		//vector<vector<int>> neighPoints(linesToRead);
 		//vector<int> tempNeigh;
+		vector< vector<int> > searchListMtrx(2,vector<int>(pow(2,layers)));
 		vector<long long int> numOfNeighPoints(linesToSearch);
 
 		for (i = 0; i < searchDataArray.size(); i++)
@@ -726,7 +728,7 @@ int main(int argc, char *argv[])
 			sp[1] = searchDataArray[i].coordinates[1];
 			sp[2] = searchDataArray[i].coordinates[2];
 			long long int count = 0;
-			kdTree_search(tree, radius, sp, count);
+			kdTree_search(tree,radius,sp,layers,searchListMtrx,count);
 			//neighPoints[i] = tempNeigh;
 			numOfNeighPoints[i] = count;
 			//tempNeigh.clear();

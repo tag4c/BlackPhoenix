@@ -84,39 +84,34 @@ void kdTree(vector<dataStruct> &data, int id, int left, int right, node *nodes){
   kdTree(data, id*2+1,mid+1, right, nodes);
 }
 
-void kdTree_search(const node* nodes, const double& radius, const double* sp, long long int& count)
+void kdTree_search(const node* nodes, const double& radius, const double* sp, int layers,
+		   vector< vector<int> >& searchListMtrx, long long int& count)
 {
   int startNode = 1;
-  vector<int> preSearchList(1);
   int countPreList = 1;
-  preSearchList[0] = startNode;
+  int countNowList;
+  searchListMtrx[0][0]= startNode;
+  int searchList = 0;
+  int saveNewList;
   while(countPreList > 0){
-    //cout << "countPreList = " << countPreList << endl;
-    int countNowList = 0;
-    //int posIndex = 0;
-    int maxList = 2*countPreList;
-    //cout << "maxList = " << maxList << endl;
-    vector<int> nowSearchList(maxList);
+    countNowList = 0;
+    saveNewList = (searchList+1) % 2;
     for(int i=0;i<countPreList;i++){
-      int nodeNum = preSearchList[i];
+      int nodeNum = searchListMtrx[searchList][i];
       double spToCent = dis(sp,nodes[nodeNum].cent);
       double maxNodeLen = nodes[nodeNum].length;
-      if(spToCent > radius + maxNodeLen){
+      if(radius >= spToCent + maxNodeLen){
+	count += nodes[nodeNum].below;
 	continue;
       }
-      if(nodes[nodeNum].below == 1){
-	count++;
-	continue;
+      if(spToCent <= radius + maxNodeLen){
+	searchListMtrx[saveNewList][countNowList] = 2*nodeNum;
+	searchListMtrx[saveNewList][countNowList+1] = 2*nodeNum + 1; 
+	countNowList += 2;
       }
-      nowSearchList[countNowList] = 2*preSearchList[i];
-      nowSearchList[countNowList+1] = nowSearchList[countNowList] + 1; 
-      countNowList += 2;
     }
     countPreList = countNowList;
-    preSearchList.clear();
-    preSearchList.resize(maxList);
-    preSearchList = nowSearchList;
-    nowSearchList.clear();
+    searchList = saveNewList;
   }
 }
 

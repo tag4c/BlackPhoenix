@@ -20,6 +20,6 @@ double length;
 };
 #endif
 void kdTree(vector<dataStruct>& data, int id,int left, int right,node *nodes);
-void kdTree_search(const node* nodes, const double& radius, const double* sp, long long int& count);
+void kdTree_search(const node* nodes, const double& radius, const double* sp, int layers,vector< vector<int> >& searchListMtrx, long long int& count);
 double dis(const double* p1, const double* p2);
 void verifySearch(vector<dataStruct>& data, double radius, double* sp);
