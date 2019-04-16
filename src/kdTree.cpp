@@ -84,7 +84,7 @@ void kdTree(vector<dataStruct> &data, int id, int left, int right, node *nodes){
   kdTree(data, id*2+1,mid+1, right, nodes);
 }
 
-void kdTree_search(const node* nodes, const double& radius, const double* sp, int layers,
+void kdTree_search(const node* nodes, const double& radius, const double* sp,
 		   vector< vector<int> >& searchListMtrx, long long int& count)
 {
   int startNode = 1;
